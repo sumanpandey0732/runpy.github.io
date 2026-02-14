@@ -6,22 +6,31 @@ export function AdBanner() {
   useEffect(() => {
     if (!adRef.current || adRef.current.childElementCount > 0) return;
 
+      useEffect(() => {
+    // 1. Create and configure the options script
     const configScript = document.createElement("script");
     configScript.innerHTML = `
-      atOptions = {
-    'key' :'10fd235b871c37edc6413cb41ff6db48',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}',
- 
+      window.atOptions = {
+        'key' : '10fd235b871c37edc6413cb41ff6db48',
+        'format' : 'iframe',
+        'height' : 50,
+        'width' : 320,
+        'params' : {}
       };
     `;
     adRef.current.appendChild(configScript);
 
+    // 2. Create and load the external script
     const invokeScript = document.createElement("script");
-    invokeScript.src = "https://www.highperformanceformat.com/10fd235b871c37edc6413cb41ff6db48/invoke.js";
+    invokeScript.src = "//www.highperformanceformat.com/10fd235b871c37edc6413cb41ff6db48/invoke.js";
     adRef.current.appendChild(invokeScript);
+
+    // Optional: Cleanup function to remove scripts when component unmounts
+    return () => {
+      if (adRef.current) {
+        adRef.current.innerHTML = '';
+      }
+    };
   }, []);
 
   return (
@@ -34,4 +43,3 @@ export function AdBanner() {
       aria-label="Advertisement"
     />
   );
-}
