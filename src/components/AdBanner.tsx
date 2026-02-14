@@ -34,7 +34,7 @@ export function AdBanner() {
     if (adRef2.current && adRef2.current.childElementCount === 0) {
       const container2 = document.createElement("div");
       container2.style.width = "468px";
-      container2.style.height = "60px";
+      container2.style.height = "40px";
       container2.id = "container-fdaea1020576c7e59be6278a10e6cde7"; // required for 2nd ad
       adRef2.current.appendChild(container2);
 
