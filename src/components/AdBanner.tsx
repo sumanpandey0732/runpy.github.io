@@ -5,45 +5,46 @@ export function AdBanner() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadAd = (ref: HTMLDivElement | null, key: string, containerId?: string) => {
-      if (!ref || ref.childElementCount > 0) return;
+    // ----- Ad 1 -----
+    if (adRef1.current && adRef1.current.childElementCount === 0) {
+      const container1 = document.createElement("div");
+      container1.style.width = "468px";
+      container1.style.height = "60px";
+      adRef1.current.appendChild(container1);
 
-      const container = document.createElement("div");
-      container.style.width = "468px";
-      container.style.height = "60px";
-      if (containerId) container.id = containerId;
-      ref.appendChild(container);
+      const script1 = document.createElement("script");
+      script1.innerHTML = `
+        atOptions = {
+          'key' : '014d42d11ad0136f6c692bbc2fdebfac',
+          'format' : 'iframe',
+          'height' : 40,
+          'width' : 468,
+          'params' : {}
+        };
+      `;
+      container1.appendChild(script1);
 
-      if (key.includes("effectivegatecpm.com")) {
-        // External async ad
-        const script = document.createElement("script");
-        script.src = key;
-        script.async = true;
-        ref.appendChild(script);
-      } else {
-        // Normal atOptions ad
-        const script1 = document.createElement("script");
-        script1.innerHTML = `
-          atOptions = {
-            'key' : '${key}',
-            'format' : 'iframe',
-            'height' : 60,
-            'width' : 468,
-            'params' : {}
-          };
-        `;
-        container.appendChild(script1);
+      const invoke1 = document.createElement("script");
+      invoke1.src = "https://www.highperformanceformat.com/014d42d11ad0136f6c692bbc2fdebfac/invoke.js";
+      invoke1.async = true;
+      container1.appendChild(invoke1);
+    }
 
-        const invoke = document.createElement("script");
-        invoke.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
-        invoke.async = true;
-        container.appendChild(invoke);
-      }
-    };
+    // ----- Ad 2 -----
+    if (adRef2.current && adRef2.current.childElementCount === 0) {
+      const container2 = document.createElement("div");
+      container2.style.width = "468px";
+      container2.style.height = "60px";
+      container2.id = "container-fdaea1020576c7e59be6278a10e6cde7"; // required for 2nd ad
+      adRef2.current.appendChild(container2);
 
-    loadAd(adRef1.current, "014d42d11ad0136f6c692bbc2fdebfac"); // Ad 1
-    loadAd(adRef2.current, "https://pl28715315.effectivegatecpm.com/fdaea1020576c7e59be6278a10e6cde7/invoke.js", "container-fdaea1020576c7e59be6278a10e6cde7"); // Ad 2
+      const script2 = document.createElement("script");
+      script2.src = "https://pl28715315.effectivegatecpm.com/fdaea1020576c7e59be6278a10e6cde7/invoke.js";
+      script2.async = true;
+      adRef2.current.appendChild(script2);
+    }
 
+    // Cleanup
     return () => {
       if (adRef1.current) adRef1.current.innerHTML = "";
       if (adRef2.current) adRef2.current.innerHTML = "";
