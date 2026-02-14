@@ -5,13 +5,13 @@ export function AdBanner() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // ✅ Load first ad (atOptions iframe)
+    // ----- Ad 1 -----
     if (adRef1.current && adRef1.current.childElementCount === 0) {
-      // Create a container div inside the ref to prevent conflicts
       const container1 = document.createElement("div");
+      container1.style.width = "468px";
+      container1.style.height = "60px";
       adRef1.current.appendChild(container1);
 
-      // Inject atOptions script
       const script1 = document.createElement("script");
       script1.innerHTML = `
         atOptions = {
@@ -24,7 +24,6 @@ export function AdBanner() {
       `;
       container1.appendChild(script1);
 
-      // Inject external invoke script
       const invoke1 = document.createElement("script");
       invoke1.src =
         "https://www.highperformanceformat.com/014d42d11ad0136f6c692bbc2fdebfac/invoke.js";
@@ -32,14 +31,14 @@ export function AdBanner() {
       container1.appendChild(invoke1);
     }
 
-    // ✅ Load second ad (async script with container)
+    // ----- Ad 2 -----
     if (adRef2.current && adRef2.current.childElementCount === 0) {
-      // Create container div with required id
       const container2 = document.createElement("div");
       container2.id = "container-fdaea1020576c7e59be6278a10e6cde7";
+      container2.style.width = "468px";
+      container2.style.height = "60px";
       adRef2.current.appendChild(container2);
 
-      // Inject external script
       const script2 = document.createElement("script");
       script2.src =
         "https://pl28715315.effectivegatecpm.com/fdaea1020576c7e59be6278a10e6cde7/invoke.js";
