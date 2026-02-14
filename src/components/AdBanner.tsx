@@ -1,14 +1,36 @@
+import { useEffect, useRef } from "react";
+
 export function AdBanner() {
+  const adRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!adRef.current || adRef.current.childElementCount > 0) return;
+
+    const configScript = document.createElement("script");
+    configScript.innerHTML = `
+      atOptions = {
+        'key' : 'e9293cbbeb206542184d8492110482df',
+        'format' : 'iframe',
+        'height' : 60,
+        'width' : 468,
+        'params' : {}
+      };
+    `;
+    adRef.current.appendChild(configScript);
+
+    const invokeScript = document.createElement("script");
+    invokeScript.src = "https://www.highperformanceformat.com/e9293cbbeb206542184d8492110482df/invoke.js";
+    adRef.current.appendChild(invokeScript);
+  }, []);
+
   return (
     <div
       id="ad-banner"
-      className="w-full bg-secondary/50 border-b border-border flex items-center justify-center"
-      style={{ height: 60 }}
+      ref={adRef}
+      className="w-full bg-secondary/40 border-b border-border flex items-center justify-center overflow-hidden"
+      style={{ minHeight: 60 }}
       role="complementary"
       aria-label="Advertisement"
-    >
-      {/* Replace this placeholder with your AdSense snippet for production */}
-      <span className="text-xs text-muted-foreground/50 tracking-widest uppercase">Ad Space</span>
-    </div>
+    />
   );
 }
