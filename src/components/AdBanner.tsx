@@ -6,29 +6,31 @@ export function AdBanner() {
   useEffect(() => {
     if (!adRef.current || adRef.current.childElementCount > 0) return;
 
-      useEffect(() => {
-    // 1. Create and configure the options script
+    // 1️⃣ Create configuration script
     const configScript = document.createElement("script");
     configScript.innerHTML = `
       window.atOptions = {
-        'key' : '10fd235b871c37edc6413cb41ff6db48',
+        'key' : 'e9293cbbeb206542184d8492110482df',
         'format' : 'iframe',
-        'height' : 50,
-        'width' : 320,
+        'height' : 60,
+        'width' : 468,
         'params' : {}
       };
     `;
     adRef.current.appendChild(configScript);
 
-    // 2. Create and load the external script
+    // 2️⃣ Load external invoke script
     const invokeScript = document.createElement("script");
-    invokeScript.src = "//www.highperformanceformat.com/10fd235b871c37edc6413cb41ff6db48/invoke.js";
+    invokeScript.src =
+      "https://www.highperformanceformat.com/e9293cbbeb206542184d8492110482df/invoke.js";
+    invokeScript.async = true;
+
     adRef.current.appendChild(invokeScript);
 
-    // Optional: Cleanup function to remove scripts when component unmounts
+    // 3️⃣ Cleanup when unmounting
     return () => {
       if (adRef.current) {
-        adRef.current.innerHTML = '';
+        adRef.current.innerHTML = "";
       }
     };
   }, []);
@@ -38,8 +40,9 @@ export function AdBanner() {
       id="ad-banner"
       ref={adRef}
       className="w-full bg-secondary/40 border-b border-border flex items-center justify-center overflow-hidden"
-      style={{ minHeight: 60 }}
+      style={{ minHeight: 70 }}
       role="complementary"
       aria-label="Advertisement"
     />
   );
+}
