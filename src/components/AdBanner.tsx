@@ -9,7 +9,7 @@ export function AdBanner() {
     if (adRef1.current && adRef1.current.childElementCount === 0) {
       const container1 = document.createElement("div");
       container1.style.width = "468px";
-      container1.style.height = "60px";
+      container1.style.height = "40px";
       adRef1.current.appendChild(container1);
 
       const script1 = document.createElement("script");
