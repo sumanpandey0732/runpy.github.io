@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        editor: {
+          bg: "hsl(var(--editor-bg))",
+          line: "hsl(var(--editor-line))",
+          gutter: "hsl(var(--editor-gutter))",
+          "gutter-fg": "hsl(var(--editor-gutter-fg))",
+        },
+        console: {
+          bg: "hsl(var(--console-bg))",
+          success: "hsl(var(--console-success))",
+          error: "hsl(var(--console-error))",
+          info: "hsl(var(--console-info))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +77,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
