@@ -5,31 +5,49 @@ export function AdBanner() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadAd = (ref: HTMLDivElement | null, key: string) => {
-      if (!ref || ref.childElementCount > 0) return;
+    // ✅ Load first ad (atOptions iframe)
+    if (adRef1.current && adRef1.current.childElementCount === 0) {
+      // Create a container div inside the ref to prevent conflicts
+      const container1 = document.createElement("div");
+      adRef1.current.appendChild(container1);
 
-      const configScript = document.createElement("script");
-      configScript.innerHTML = `
-        window.atOptions = {
-          'key' : '${key}',
+      // Inject atOptions script
+      const script1 = document.createElement("script");
+      script1.innerHTML = `
+        atOptions = {
+          'key' : '014d42d11ad0136f6c692bbc2fdebfac',
           'format' : 'iframe',
           'height' : 60,
           'width' : 468,
           'params' : {}
         };
       `;
-      ref.appendChild(configScript);
+      container1.appendChild(script1);
 
-      const invokeScript = document.createElement("script");
-      invokeScript.src = \`https://www.highperformanceformat.com/${key}/invoke.js\`;
-      invokeScript.async = true;
+      // Inject external invoke script
+      const invoke1 = document.createElement("script");
+      invoke1.src =
+        "https://www.highperformanceformat.com/014d42d11ad0136f6c692bbc2fdebfac/invoke.js";
+      invoke1.async = true;
+      container1.appendChild(invoke1);
+    }
 
-      ref.appendChild(invokeScript);
-    };
+    // ✅ Load second ad (async script with container)
+    if (adRef2.current && adRef2.current.childElementCount === 0) {
+      // Create container div with required id
+      const container2 = document.createElement("div");
+      container2.id = "container-fdaea1020576c7e59be6278a10e6cde7";
+      adRef2.current.appendChild(container2);
 
-    loadAd(adRef1.current, "e9293cbbeb206542184d8492110482df");
-    loadAd(adRef2.current, "014d42d11ad0136f6c692bbc2fdebfac");
+      // Inject external script
+      const script2 = document.createElement("script");
+      script2.src =
+        "https://pl28715315.effectivegatecpm.com/fdaea1020576c7e59be6278a10e6cde7/invoke.js";
+      script2.async = true;
+      adRef2.current.appendChild(script2);
+    }
 
+    // Cleanup on unmount
     return () => {
       if (adRef1.current) adRef1.current.innerHTML = "";
       if (adRef2.current) adRef2.current.innerHTML = "";
@@ -38,7 +56,7 @@ export function AdBanner() {
 
   return (
     <div
-      className="w-full bg-secondary/40 border-b border-border flex items-center justify-center gap-2 overflow-x-auto"
+      className="w-full flex flex-wrap md:flex-nowrap items-center justify-center gap-2 overflow-x-auto bg-secondary/40 border-b border-border"
       style={{ minHeight: 70 }}
       role="complementary"
       aria-label="Advertisement"
