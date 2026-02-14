@@ -9,17 +9,18 @@ export function AdBanner() {
     const configScript = document.createElement("script");
     configScript.innerHTML = `
       atOptions = {
-        'key' : 'e9293cbbeb206542184d8492110482df',
-        'format' : 'iframe',
-        'height' : 60,
-        'width' : 468,
-        'params' : {}
+    'key' :'10fd235b871c37edc6413cb41ff6db48',
+    'format' : 'iframe',
+    'height' : 50,
+    'width' : 320,
+    'params' : {}',
+ 
       };
     `;
     adRef.current.appendChild(configScript);
 
     const invokeScript = document.createElement("script");
-    invokeScript.src = "https://www.highperformanceformat.com/e9293cbbeb206542184d8492110482df/invoke.js";
+    invokeScript.src = "https://www.highperformanceformat.com/10fd235b871c37edc6413cb41ff6db48/invoke.js";
     adRef.current.appendChild(invokeScript);
   }, []);
 
