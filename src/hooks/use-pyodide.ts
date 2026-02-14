@@ -120,7 +120,6 @@ export function usePyodide() {
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           setStatus(msg.success ? "success" : "error");
           setExecutionTime(msg.elapsed);
-          addEntry("info", `${msg.success ? "✅" : "❌"} Finished in ${msg.elapsed.toFixed(0)}ms`);
           break;
         case "error":
           setStatus("error");
@@ -145,6 +144,7 @@ export function usePyodide() {
         return;
       }
 
+      setEntries([]);
       const worker = workerRef.current ?? createWorker();
       const runId = ++runIdRef.current;
       setStatus("running");
