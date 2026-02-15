@@ -1,5 +1,11 @@
 import { useEffect, useRef } from "react";
 
+declare global {
+  interface Window {
+    atOptions?: Record<string, unknown>;
+  }
+}
+
 export function AdBanner() {
   const adRef1 = useRef<HTMLDivElement>(null);
   const adRef2 = useRef<HTMLDivElement>(null);
