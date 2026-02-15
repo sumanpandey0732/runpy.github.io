@@ -5,49 +5,54 @@ export function AdFooter() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Ad 1: atOptions-based (unique footer key)
+    // ---- Ad 1 ----
     if (adRef1.current && adRef1.current.childElementCount === 0) {
-      const optScript = document.createElement("script");
-      optScript.innerHTML = `
+      const opt1 = document.createElement("script");
+      opt1.innerHTML = `
         var atOptions = {
-          'key' : '014d42d11ad0136f6c692bbc2fdebfac',
+          'key' : '1611ca31419bb9c178b7e5a53931edb0',
           'format' : 'iframe',
-          'height' : 60,
-          'width' : 468,
+          'height' : 50,
+          'width' : 320,
           'params' : {}
         };
       `;
-      adRef1.current.appendChild(optScript);
+      adRef1.current.appendChild(opt1);
 
-      const invoke = document.createElement("script");
-      invoke.src = "https://www.highperformanceformat.com/014d42d11ad0136f6c692bbc2fdebfac/invoke.js";
-      invoke.async = true;
-      adRef1.current.appendChild(invoke);
+      const invoke1 = document.createElement("script");
+      invoke1.src = "https://www.highperformanceformat.com/1611ca31419bb9c178b7e5a53931edb0/invoke.js";
+      invoke1.async = true;
+      adRef1.current.appendChild(invoke1);
     }
 
-    // Ad 2: container-based (unique footer container ID)
+    // ---- Ad 2 ----
     if (adRef2.current && adRef2.current.childElementCount === 0) {
-      const container = document.createElement("div");
-      container.id = "container-fdaea1020576c7e59be6278a10e6cde7-footer";
-      adRef2.current.appendChild(container);
+      const opt2 = document.createElement("script");
+      opt2.innerHTML = `
+        var atOptions = {
+          'key' : '28da3934f715b5b5eccce644d9633aa7',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      `;
+      adRef2.current.appendChild(opt2);
 
-      const script = document.createElement("script");
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      script.src = "https://pl28715315.effectivegatecpm.com/fdaea1020576c7e59be6278a10e6cde7/invoke.js";
-      adRef2.current.appendChild(script);
+      const invoke2 = document.createElement("script");
+      invoke2.src = "https://www.highperformanceformat.com/28da3934f715b5b5eccce644d9633aa7/invoke.js";
+      invoke2.async = true;
+      adRef2.current.appendChild(invoke2);
     }
   }, []);
 
   return (
     <div
-      className="w-full flex flex-wrap items-center justify-center gap-2 bg-secondary/40 border-t border-border overflow-hidden"
-      style={{ minHeight: 70, maxHeight: 80 }}
-      role="complementary"
-      aria-label="Footer advertisement"
+      className="w-full flex items-center justify-center gap-3 bg-secondary/40 border-t border-border"
+      style={{ minHeight: 60 }}
     >
-      <div ref={adRef1} className="shrink-0 overflow-hidden" style={{ maxHeight: 60 }} />
-      <div ref={adRef2} className="shrink-0 overflow-hidden" style={{ maxHeight: 60 }} />
+      <div ref={adRef1} style={{ width: 320, height: 50 }} />
+      <div ref={adRef2} style={{ width: 320, height: 50 }} />
     </div>
   );
 }
