@@ -140,6 +140,16 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
   .animate-pulse-glow {
     animation: pulse-glow 1.5s ease-in-out infinite;
   }
@@ -150,5 +160,22 @@
 
   .animate-slide-up {
     animation: slide-up 0.3s ease-out;
+  }
+
+  .animate-shimmer {
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .card-3d {
+    transform: perspective(1000px) rotateX(1deg);
+    transition: transform 0.3s ease;
+  }
+  .card-3d:hover {
+    transform: perspective(1000px) rotateX(0deg) translateY(-2px);
   }
 }
