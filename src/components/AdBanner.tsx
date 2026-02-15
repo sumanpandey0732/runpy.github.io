@@ -9,7 +9,7 @@ export function AdBanner() {
     if (adRef1.current && adRef1.current.childElementCount === 0) {
       const container1 = document.createElement("div");
       container1.style.width = "468px";
-      container1.style.height = "40px";
+      container1.style.height = "50px";
       adRef1.current.appendChild(container1);
 
       const script1 = document.createElement("script");
@@ -34,7 +34,7 @@ export function AdBanner() {
     if (adRef2.current && adRef2.current.childElementCount === 0) {
       const container2 = document.createElement("div");
       container2.style.width = "468px";
-      container2.style.height = "40px";
+      container2.style.height = "50px";
       container2.id = "container-fdaea1020576c7e59be6278a10e6cde7"; // required for 2nd ad
       adRef2.current.appendChild(container2);
 
@@ -53,13 +53,13 @@ export function AdBanner() {
 
   return (
     <div
-      className="w-full flex flex-wrap md:flex-nowrap items-center justify-center gap-2 bg-secondary/40 border-b border-border"
-      style={{ minHeight: 70 }}
+      className="w-full flex flex-wrap items-center justify-center gap-2 bg-secondary/40 border-b border-border overflow-hidden"
+      style={{ minHeight: 50, maxHeight: 60 }}
       role="complementary"
       aria-label="Advertisement"
     >
-      <div ref={adRef1} />
-      <div ref={adRef2} />
+      <div ref={adRef1} className="shrink-0 overflow-hidden" style={{ maxHeight: 50 }} />
+      <div ref={adRef2} className="shrink-0 overflow-hidden" style={{ maxHeight: 50 }} />
     </div>
   );
 }

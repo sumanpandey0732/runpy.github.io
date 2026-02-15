@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { CodeEditor } from "@/components/CodeEditor";
 import { ConsoleOutput } from "@/components/ConsoleOutput";
 import { AdBanner } from "@/components/AdBanner";
+import { AdFooter } from "@/components/AdFooter";
 import { ResizablePanels } from "@/components/ResizablePanels";
 import { CompilerSidebar } from "@/components/CompilerSidebar";
 
@@ -191,6 +192,7 @@ const Index = () => {
           </span>
           <span className="gradient-text font-semibold">World's Best Compiler ✨</span>
         </footer>
+        <AdFooter />
       </div>
     </div>
   );
