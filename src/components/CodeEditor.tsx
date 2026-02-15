@@ -126,7 +126,7 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
   const langLabel = language === "python" ? "Python 3.x (Pyodide)" : "JavaScript (V8)";
 
   return (
-    <div className="flex flex-col h-full rounded-xl overflow-hidden border border-border bg-card shadow-[var(--shadow-card)] relative">
+    <div className="flex flex-col h-full rounded-xl overflow-hidden border border-border bg-card shadow-[var(--shadow-card)] relative card-3d">
       {/* Top bar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-secondary/30">
         <div className="flex items-center gap-2">
