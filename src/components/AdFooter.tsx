@@ -5,7 +5,7 @@ export function AdFooter() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Ad 1: atOptions-based
+    // Ad 1: atOptions-based (unique footer key)
     if (adRef1.current && adRef1.current.childElementCount === 0) {
       const optScript = document.createElement("script");
       optScript.innerHTML = `
@@ -25,7 +25,7 @@ export function AdFooter() {
       adRef1.current.appendChild(invoke);
     }
 
-    // Ad 2: container-based
+    // Ad 2: container-based (unique footer container ID)
     if (adRef2.current && adRef2.current.childElementCount === 0) {
       const container = document.createElement("div");
       container.id = "container-fdaea1020576c7e59be6278a10e6cde7-footer";
