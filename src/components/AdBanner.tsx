@@ -17,7 +17,7 @@ export function AdBanner() {
         key: "1611ca31419bb9c178b7e5a53931edb0",
         format: "iframe",
         height: 50,
-        width: 728,
+        width: 320,
         params: {},
       };
 
