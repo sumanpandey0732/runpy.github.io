@@ -52,8 +52,8 @@ export function AdBanner() {
         flexWrap: "wrap",
       }}
     >
-      <div style={{ width: 320, height: 50 }} ref={adRef1}></div>
-      <div style={{ width: 468, height: 60 }} ref={adRef2}></div>
+      <div style={{ width: 320, height: 60 }} ref={adRef1}></div>
+      <div style={{ width: 320, height: 50 }} ref={adRef2}></div>
     </div>
   );
 }
