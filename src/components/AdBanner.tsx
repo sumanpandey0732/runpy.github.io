@@ -5,10 +5,10 @@ export function AdBanner() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // -------- Load Ad 1 --------
+    // -------- Ad 1 (320x50) --------
     if (adRef1.current) {
-      const script1Options = document.createElement("script");
-      script1Options.innerHTML = `
+      const s1 = document.createElement("script");
+      s1.innerHTML = `
         var atOptions = {
           'key' : '1611ca31419bb9c178b7e5a53931edb0',
           'format' : 'iframe',
@@ -18,37 +18,35 @@ export function AdBanner() {
         };
       `;
 
-      const script1 = document.createElement("script");
-      script1.src =
+      const s1Invoke = document.createElement("script");
+      s1Invoke.src =
         "https://www.highperformanceformat.com/1611ca31419bb9c178b7e5a53931edb0/invoke.js";
-      script1.async = false;
+      s1Invoke.async = false;
 
-      script1.onload = () => {
-        // -------- Load Ad 2 AFTER Ad 1 --------
-        if (adRef2.current) {
-          const script2Options = document.createElement("script");
-          script2Options.innerHTML = `
-            var atOptions = {
-              'key' : '28da3934f715b5b5eccce644d9633aa7',
-              'format' : 'iframe',
-              'height' : 50,
-              'width' : 320,
-              'params' : {}
-            };
-          `;
+      adRef1.current.appendChild(s1);
+      adRef1.current.appendChild(s1Invoke);
+    }
 
-          const script2 = document.createElement("script");
-          script2.src =
-            "https://www.highperformanceformat.com/28da3934f715b5b5eccce644d9633aa7/invoke.js";
-          script2.async = false;
+    // -------- Ad 2 (320x100) --------
+    if (adRef2.current) {
+      const s2 = document.createElement("script");
+      s2.innerHTML = `
+        var atOptions = {
+          'key' : '28da3934f715b5b5eccce644d9633aa7',
+          'format' : 'iframe',
+          'height' : 100,
+          'width' : 320,
+          'params' : {}
+        };
+      `;
 
-          adRef2.current.appendChild(script2Options);
-          adRef2.current.appendChild(script2);
-        }
-      };
+      const s2Invoke = document.createElement("script");
+      s2Invoke.src =
+        "https://www.highperformanceformat.com/28da3934f715b5b5eccce644d9633aa7/invoke.js";
+      s2Invoke.async = false;
 
-      adRef1.current.appendChild(script1Options);
-      adRef1.current.appendChild(script1);
+      adRef2.current.appendChild(s2);
+      adRef2.current.appendChild(s2Invoke);
     }
   }, []);
 
@@ -57,12 +55,13 @@ export function AdBanner() {
       style={{
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
         gap: "16px",
         flexWrap: "wrap",
       }}
     >
       <div style={{ width: 320, height: 50 }} ref={adRef1}></div>
-      <div style={{ width: 320, height: 50 }} ref={adRef2}></div>
+      <div style={{ width: 320, height: 100 }} ref={adRef2}></div>
     </div>
   );
 }
