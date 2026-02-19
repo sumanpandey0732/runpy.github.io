@@ -5,49 +5,45 @@ export function AdFooter() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Ad 1: 014d42d11ad0136f6c692bbc2fdebfac
+    // NEW Ad 1
     if (adRef1.current && adRef1.current.childElementCount === 0) {
-      const opt = document.createElement("script");
-      opt.innerHTML = `
-        var atOptions = {
-          'key' : '014d42d11ad0136f6c692bbc2fdebfac',
-          'format' : 'iframe',
-          'height' : 60,
-          'width' : 468,
-          'params' : {}
-        };
-      `;
-      adRef1.current.appendChild(opt);
+      const container = document.createElement("div");
+      container.id = "container-cb676fc5c68bf473009afc5fd084f637";
+      adRef1.current.appendChild(container);
 
-      const invoke = document.createElement("script");
-      invoke.src = "https://www.highperformanceformat.com/014d42d11ad0136f6c692bbc2fdebfac/invoke.js";
-      invoke.async = true;
-      adRef1.current.appendChild(invoke);
+      const script = document.createElement("script");
+      script.async = true;
+      script.setAttribute("data-cfasync", "false");
+      script.src =
+        "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js";
+      adRef1.current.appendChild(script);
     }
 
-    // Ad 2: fdaea1020576c7e59be6278a10e6cde7
+    // NEW Ad 2
     if (adRef2.current && adRef2.current.childElementCount === 0) {
       const container = document.createElement("div");
-      container.id = "container-fdaea1020576c7e59be6278a10e6cde7";
+      container.id = "container-ad3ffd8815977b191739e3734c05e473";
       adRef2.current.appendChild(container);
 
       const script = document.createElement("script");
       script.async = true;
       script.setAttribute("data-cfasync", "false");
-      script.src = "https://pl28715315.effectivegatecpm.com/fdaea1020576c7e59be6278a10e6cde7/invoke.js";
+      script.src =
+        "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js";
       adRef2.current.appendChild(script);
     }
   }, []);
 
   return (
     <div
-      className="w-full flex flex-wrap items-center justify-center gap-3 bg-secondary/40 border-t border-border overflow-hidden"
-      style={{ minHeight: 70, maxHeight: 80 }}
+      className="w-full flex items-center justify-center gap-3 bg-secondary/40 border-t border-border overflow-hidden"
+      style={{ minHeight: 70 }}
       role="complementary"
       aria-label="Footer advertisement"
     >
-      <div ref={adRef1} className="shrink-0 overflow-hidden" style={{ maxHeight: 60 }} />
-      <div ref={adRef2} className="shrink-0 overflow-hidden" style={{ maxHeight: 60 }} />
+      {/* Side by side ads */}
+      <div ref={adRef1} className="flex-1 flex justify-center overflow-hidden" />
+      <div ref={adRef2} className="flex-1 flex justify-center overflow-hidden" />
     </div>
   );
 }
