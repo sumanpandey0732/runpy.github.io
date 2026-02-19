@@ -45,12 +45,12 @@ export function AdFooter() {
       <div
         ref={adRef1}
         className="flex-1 flex justify-center overflow-hidden"
-        style={{ maxHeight: 40 }}
+        style={{ maxHeight: 50 }}
       />
       <div
         ref={adRef2}
         className="flex-1 flex justify-center overflow-hidden"
-        style={{ maxHeight: 40 }}
+        style={{ maxHeight: 50 }}
       />
     </div>
   );
