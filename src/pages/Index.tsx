@@ -190,7 +190,7 @@ const Index = () => {
               ? `${py.pyodideVersion ? `Pyodide ${py.pyodideVersion}` : "Python 3.x"} • Ctrl+Enter to run`
               : "JavaScript (V8) • Ctrl+Enter to run"}
           </span>
-          <span className="gradient-text font-semibold">World's Best Compiler ✨</span>
+          <span className="gradient-text font-semibold">Developed by Santosh pandey ✨</span>
         </footer>
         <AdFooter />
       </div>
