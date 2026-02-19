@@ -5,7 +5,7 @@ export function AdFooter() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // NEW Ad 1
+    // Ad 1
     if (adRef1.current && adRef1.current.childElementCount === 0) {
       const container = document.createElement("div");
       container.id = "container-cb676fc5c68bf473009afc5fd084f637";
@@ -19,7 +19,7 @@ export function AdFooter() {
       adRef1.current.appendChild(script);
     }
 
-    // NEW Ad 2
+    // Ad 2
     if (adRef2.current && adRef2.current.childElementCount === 0) {
       const container = document.createElement("div");
       container.id = "container-ad3ffd8815977b191739e3734c05e473";
@@ -36,14 +36,22 @@ export function AdFooter() {
 
   return (
     <div
-      className="w-full flex items-center justify-center gap-3 bg-secondary/40 border-t border-border overflow-hidden"
-      style={{ minHeight: 70 }}
+      className="w-full flex flex-row flex-wrap items-center justify-center gap-2 bg-secondary/40 border-t border-border overflow-hidden"
+      style={{ minHeight: 60, maxHeight: 70 }}
       role="complementary"
       aria-label="Footer advertisement"
     >
-      {/* Side by side ads */}
-      <div ref={adRef1} className="flex-1 flex justify-center overflow-hidden" />
-      <div ref={adRef2} className="flex-1 flex justify-center overflow-hidden" />
+      {/* Limited height native ads */}
+      <div
+        ref={adRef1}
+        className="flex-1 flex justify-center overflow-hidden"
+        style={{ maxHeight: 40 }}
+      />
+      <div
+        ref={adRef2}
+        className="flex-1 flex justify-center overflow-hidden"
+        style={{ maxHeight: 40 }}
+      />
     </div>
   );
 }
