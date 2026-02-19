@@ -57,7 +57,7 @@ export function CompilerSidebar({ language, onLanguageChange, open, onToggle }: 
         <div className="p-3 border-t border-border">
           <div className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
             <Terminal className="w-3 h-3" />
-            World's Best Compiler
+            Developed by Santosh pandey 
           </div>
         </div>
       </div>
