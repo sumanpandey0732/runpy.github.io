@@ -8,8 +8,8 @@ export function AdFooter() {
     const loadAd1 = () => {
       if (!adRef1.current) return;
 
-      // don't reload if ad still exists
-      if (adRef1.current.childElementCount > 0) return;
+      // FORCE CLEAR old ad
+      adRef1.current.innerHTML = "";
 
       const cb = Date.now();
 
@@ -30,7 +30,8 @@ export function AdFooter() {
     const loadAd2 = () => {
       if (!adRef2.current) return;
 
-      if (adRef2.current.childElementCount > 0) return;
+      // FORCE CLEAR old ad
+      adRef2.current.innerHTML = "";
 
       const cb = Date.now();
 
@@ -50,14 +51,14 @@ export function AdFooter() {
 
     const loadAds = () => {
       loadAd1();
-      setTimeout(loadAd2, 500); // small delay like networks expect
+      setTimeout(loadAd2, 500);
     };
 
     // first load
     loadAds();
 
-    // check every 10 sec and reload only if empty
-    const interval = setInterval(loadAds, 10000);
+    // 🔥 FORCE reload every 5 sec
+    const interval = setInterval(loadAds, 5000);
 
     return () => clearInterval(interval);
   }, []);
