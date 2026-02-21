@@ -5,33 +5,47 @@ export function AdFooter() {
   const adRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Ad 1
-    if (adRef1.current && adRef1.current.childElementCount === 0) {
-      const container = document.createElement("div");
-      container.id = "container-cb676fc5c68bf473009afc5fd084f637";
-      adRef1.current.appendChild(container);
+    const loadAds = () => {
+      // clear old ads before reload
+      if (adRef1.current) adRef1.current.innerHTML = "";
+      if (adRef2.current) adRef2.current.innerHTML = "";
 
-      const script = document.createElement("script");
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      script.src =
-        "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js";
-      adRef1.current.appendChild(script);
-    }
+      // Ad 1
+      if (adRef1.current) {
+        const container = document.createElement("div");
+        container.id = "container-cb676fc5c68bf473009afc5fd084f637";
+        adRef1.current.appendChild(container);
 
-    // Ad 2
-    if (adRef2.current && adRef2.current.childElementCount === 0) {
-      const container = document.createElement("div");
-      container.id = "container-ad3ffd8815977b191739e3734c05e473";
-      adRef2.current.appendChild(container);
+        const script = document.createElement("script");
+        script.async = true;
+        script.setAttribute("data-cfasync", "false");
+        script.src =
+          "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js";
+        adRef1.current.appendChild(script);
+      }
 
-      const script = document.createElement("script");
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      script.src =
-        "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js";
-      adRef2.current.appendChild(script);
-    }
+      // Ad 2
+      if (adRef2.current) {
+        const container = document.createElement("div");
+        container.id = "container-ad3ffd8815977b191739e3734c05e473";
+        adRef2.current.appendChild(container);
+
+        const script = document.createElement("script");
+        script.async = true;
+        script.setAttribute("data-cfasync", "false");
+        script.src =
+          "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js";
+        adRef2.current.appendChild(script);
+      }
+    };
+
+    // first load
+    loadAds();
+
+    // reload every 5 sec
+    const interval = setInterval(loadAds, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -41,7 +55,6 @@ export function AdFooter() {
       role="complementary"
       aria-label="Footer advertisement"
     >
-      {/* Limited height native ads */}
       <div
         ref={adRef1}
         className="flex-1 flex justify-center overflow-hidden"
