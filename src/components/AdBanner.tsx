@@ -16,8 +16,23 @@ export function AdBanner() {
   const loadAd = (ref: React.RefObject<HTMLDivElement>, key: string) => {
     if (!ref.current) return;
 
-    while (ref.current.firstChild) {
-      ref.current.removeChild(ref.current.firstChild);
+    // ✅ ensure fixed height so layout never collapses
+    ref.current.style.width = "320px";
+    ref.current.style.height = "50px";
+    ref.current.style.minWidth = "320px";
+    ref.current.style.minHeight = "50px";
+
+    // create inner container that we clear instead
+    let inner = ref.current.querySelector(".ad-inner") as HTMLDivElement | null;
+
+    if (!inner) {
+      inner = document.createElement("div");
+      inner.className = "ad-inner";
+      ref.current.appendChild(inner);
+    }
+
+    while (inner.firstChild) {
+      inner.removeChild(inner.firstChild);
     }
 
     window.atOptions = {
@@ -31,29 +46,15 @@ export function AdBanner() {
     const script = document.createElement("script");
     script.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
     script.async = true;
-    ref.current.appendChild(script);
+    inner.appendChild(script);
   };
 
   useEffect(() => {
     const doLoad = () => {
-      // ✅ freeze scroll
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-
       loadAd(adRef1, "1611ca31419bb9c178b7e5a53931edb0");
 
       const t = window.setTimeout(() => {
         loadAd(adRef2, "28da3934f715b5b5eccce644d9633aa7");
-
-        // ✅ unfreeze scroll
-        requestAnimationFrame(() => {
-          document.body.style.position = "";
-          document.body.style.top = "";
-          document.body.style.width = "";
-          window.scrollTo(0, scrollY);
-        });
       }, 500);
 
       timeoutRefs.current.push(t);
