@@ -36,17 +36,23 @@ export function AdBanner() {
 
   useEffect(() => {
     const doLoad = () => {
-      // save scroll position
+      // ✅ freeze scroll
       const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
 
       loadAd(adRef1, "1611ca31419bb9c178b7e5a53931edb0");
 
       const t = window.setTimeout(() => {
         loadAd(adRef2, "28da3934f715b5b5eccce644d9633aa7");
 
-        // restore scroll after reload
+        // ✅ unfreeze scroll
         requestAnimationFrame(() => {
-          window.scrollTo({ top: scrollY, behavior: "auto" });
+          document.body.style.position = "";
+          document.body.style.top = "";
+          document.body.style.width = "";
+          window.scrollTo(0, scrollY);
         });
       }, 500);
 
