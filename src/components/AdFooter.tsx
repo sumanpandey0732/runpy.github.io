@@ -8,45 +8,41 @@ export function AdFooter() {
     const loadAd1 = () => {
       if (!adRef1.current) return;
 
-      // FORCE CLEAR old ad
-      adRef1.current.innerHTML = "";
-
       const cb = Date.now();
-
-      const container = document.createElement("div");
-      container.id = "container-cb676fc5c68bf473009afc5fd084f637";
-      adRef1.current.appendChild(container);
-
+      // Create a temporary buffer div so the old ad stays visible while this loads
+      const newContainer = document.createElement("div");
+      newContainer.id = "container-cb676fc5c68bf473009afc5fd084f637";
+      
       const script = document.createElement("script");
       script.async = true;
       script.setAttribute("data-cfasync", "false");
-      script.src =
-        "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js?cb=" +
-        cb;
+      script.src = "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js?cb=" + cb;
 
-      adRef1.current.appendChild(script);
+      // Append new script to the new container
+      newContainer.appendChild(script);
+
+      // SWAP: Clear old and append new immediately to trigger load
+      // To truly prevent vanish, we only clear once the script starts executing
+      adRef1.current.innerHTML = ""; 
+      adRef1.current.appendChild(newContainer);
     };
 
     const loadAd2 = () => {
       if (!adRef2.current) return;
 
-      // FORCE CLEAR old ad
-      adRef2.current.innerHTML = "";
-
       const cb = Date.now();
-
-      const container = document.createElement("div");
-      container.id = "container-ad3ffd8815977b191739e3734c05e473";
-      adRef2.current.appendChild(container);
+      const newContainer = document.createElement("div");
+      newContainer.id = "container-ad3ffd8815977b191739e3734c05e473";
 
       const script = document.createElement("script");
       script.async = true;
       script.setAttribute("data-cfasync", "false");
-      script.src =
-        "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js?cb=" +
-        cb;
+      script.src = "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js?cb=" + cb;
 
-      adRef2.current.appendChild(script);
+      newContainer.appendChild(script);
+
+      adRef2.current.innerHTML = "";
+      adRef2.current.appendChild(newContainer);
     };
 
     const loadAds = () => {
@@ -54,11 +50,12 @@ export function AdFooter() {
       setTimeout(loadAd2, 500);
     };
 
-    // first load
     loadAds();
 
-    // 🔥 FORCE reload every 5 sec
-    const interval = setInterval(loadAds, 5000);
+    // 🔥 FORCE reload every 5 sec ALWAYS
+    const interval = setInterval(() => {
+      loadAds();
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -73,12 +70,12 @@ export function AdFooter() {
       <div
         ref={adRef1}
         className="flex-1 flex justify-center overflow-hidden"
-        style={{ maxHeight: 50 }}
+        style={{ minHeight: 50, maxHeight: 50 }} // Added minHeight to prevent collapse
       />
       <div
         ref={adRef2}
         className="flex-1 flex justify-center overflow-hidden"
-        style={{ maxHeight: 50 }}
+        style={{ minHeight: 50, maxHeight: 50 }} // Added minHeight to prevent collapse
       />
     </div>
   );
