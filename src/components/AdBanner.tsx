@@ -18,6 +18,19 @@ export function AdBanner() {
   const loadAd = (ref: React.RefObject<HTMLDivElement>, key: string) => {
     if (!ref.current) return;
 
+    // --- KEEP THE CONTAINER SIZE STABLE TO AVOID LAYOUT JUMP ---
+    // force fixed size that matches the ad iframe size
+    ref.current.style.boxSizing = "border-box";
+    ref.current.style.width = "320px";
+    ref.current.style.minWidth = "320px";
+    ref.current.style.height = "50px";
+    ref.current.style.minHeight = "50px";
+    ref.current.style.display = "inline-block";
+    ref.current.style.verticalAlign = "middle";
+    // optional: prevent focus-caused jumps
+    ref.current.tabIndex = -1;
+    // ---------------------------------------------------------
+
     // remove existing children so script can be re-inserted cleanly
     while (ref.current.firstChild) {
       ref.current.removeChild(ref.current.firstChild);
