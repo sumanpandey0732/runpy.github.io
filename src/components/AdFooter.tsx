@@ -6,6 +6,8 @@ export function AdFooter() {
 
   useEffect(() => {
     const loadAds = () => {
+      const cb = Date.now(); // cache buster so ad reloads every time
+
       // clear old ads before reload
       if (adRef1.current) adRef1.current.innerHTML = "";
       if (adRef2.current) adRef2.current.innerHTML = "";
@@ -20,7 +22,7 @@ export function AdFooter() {
         script.async = true;
         script.setAttribute("data-cfasync", "false");
         script.src =
-          "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js";
+          "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js?cb=" + cb;
         adRef1.current.appendChild(script);
       }
 
@@ -34,7 +36,7 @@ export function AdFooter() {
         script.async = true;
         script.setAttribute("data-cfasync", "false");
         script.src =
-          "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js";
+          "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js?cb=" + cb;
         adRef2.current.appendChild(script);
       }
     };
@@ -42,7 +44,7 @@ export function AdFooter() {
     // first load
     loadAds();
 
-    // reload every 5 sec
+    // reload every 5 sec (always)
     const interval = setInterval(loadAds, 5000);
 
     return () => clearInterval(interval);
