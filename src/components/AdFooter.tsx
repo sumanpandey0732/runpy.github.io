@@ -47,7 +47,7 @@ export function AdFooter() {
     loadAds();
 
     // reload every 10 sec (always)
-    const interval = setInterval(loadAds, 10000);
+    const interval = setInterval(loadAds, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -55,7 +55,7 @@ export function AdFooter() {
   return (
     <div
       className="w-full flex flex-row flex-wrap items-center justify-center gap-2 bg-secondary/40 border-t border-border overflow-hidden"
-      style={{ minHeight: 60, maxHeight: 70 }}
+      style={{ minHeight: 60, maxHeight: 60 }}
       role="complementary"
       aria-label="Footer advertisement"
     >
