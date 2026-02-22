@@ -6,9 +6,9 @@ export function AdFooter() {
 
   useEffect(() => {
     const loadAds = () => {
-      const cb = Date.now(); // cache buster so ad reloads every time
+      const cb = Date.now();
 
-      // Ad 1
+      // Ad 1 Logic
       if (adRef1.current) {
         const container = document.createElement("div");
         container.id = "container-cb676fc5c68bf473009afc5fd084f637";
@@ -16,16 +16,14 @@ export function AdFooter() {
         const script = document.createElement("script");
         script.async = true;
         script.setAttribute("data-cfasync", "false");
-        script.src =
-          "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js?cb=" + cb;
+        script.src = `https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js?cb=${cb}`;
 
-        // Clear and append at the same time to prevent the "vanish" gap
-        adRef1.current.innerHTML = "";
-        adRef1.current.appendChild(container);
-        adRef1.current.appendChild(script);
+        // replaceChildren swaps the old ad for the new container/script 
+        // in one single frame, preventing the "vanishing" white space.
+        adRef1.current.replaceChildren(container, script);
       }
 
-      // Ad 2
+      // Ad 2 Logic
       if (adRef2.current) {
         const container = document.createElement("div");
         container.id = "container-ad3ffd8815977b191739e3734c05e473";
@@ -33,21 +31,17 @@ export function AdFooter() {
         const script = document.createElement("script");
         script.async = true;
         script.setAttribute("data-cfasync", "false");
-        script.src =
-          "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js?cb=" + cb;
+        script.src = `https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js?cb=${cb}`;
 
-        // Clear and append at the same time to prevent the "vanish" gap
-        adRef2.current.innerHTML = "";
-        adRef2.current.appendChild(container);
-        adRef2.current.appendChild(script);
+        adRef2.current.replaceChildren(container, script);
       }
     };
 
-    // first load
+    // Initial load
     loadAds();
 
-    // reload every 10 sec (always)
-    const interval = setInterval(loadAds, 15000);
+    // Reload every 10 seconds (10000ms)
+    const interval = setInterval(loadAds, 10000);
 
     return () => clearInterval(interval);
   }, []);
@@ -55,7 +49,7 @@ export function AdFooter() {
   return (
     <div
       className="w-full flex flex-row flex-wrap items-center justify-center gap-2 bg-secondary/40 border-t border-border overflow-hidden"
-      style={{ minHeight: 60, maxHeight: 60 }}
+      style={{ minHeight: 60, maxHeight: 70 }}
       role="complementary"
       aria-label="Footer advertisement"
     >
