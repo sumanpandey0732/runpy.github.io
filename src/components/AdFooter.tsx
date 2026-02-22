@@ -16,24 +16,13 @@ export function AdBanner() {
   const loadAd = (ref: React.RefObject<HTMLDivElement>, key: string) => {
     if (!ref.current) return;
 
-    // ✅ ensure fixed height so layout never collapses
+    // keep fixed size so layout doesn't jump
     ref.current.style.width = "320px";
     ref.current.style.height = "50px";
     ref.current.style.minWidth = "320px";
     ref.current.style.minHeight = "50px";
 
-    // create inner container that we clear instead
-    let inner = ref.current.querySelector(".ad-inner") as HTMLDivElement | null;
-
-    if (!inner) {
-      inner = document.createElement("div");
-      inner.className = "ad-inner";
-      ref.current.appendChild(inner);
-    }
-
-    while (inner.firstChild) {
-      inner.removeChild(inner.firstChild);
-    }
+    const container = ref.current;
 
     window.atOptions = {
       key,
@@ -46,7 +35,18 @@ export function AdBanner() {
     const script = document.createElement("script");
     script.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
     script.async = true;
-    inner.appendChild(script);
+
+    // append new first
+    container.appendChild(script);
+
+    // remove old nodes AFTER new one inserted (prevents collapse)
+    const t = window.setTimeout(() => {
+      while (container.children.length > 1) {
+        container.removeChild(container.firstChild as Node);
+      }
+    }, 800);
+
+    timeoutRefs.current.push(t);
   };
 
   useEffect(() => {
