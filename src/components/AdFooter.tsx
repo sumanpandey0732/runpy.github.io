@@ -1,88 +1,72 @@
 import { useEffect, useRef } from "react";
 
-declare global {
-  interface Window {
-    atOptions?: Record<string, unknown>;
-  }
-}
-
-export function AdBanner() {
+export function AdFooter() {
   const adRef1 = useRef<HTMLDivElement>(null);
   const adRef2 = useRef<HTMLDivElement>(null);
 
-  const intervalRef = useRef<number | null>(null);
-  const timeoutRefs = useRef<number[]>([]);
-
-  const loadAd = (ref: React.RefObject<HTMLDivElement>, key: string) => {
-    if (!ref.current) return;
-
-    // keep fixed size so layout doesn't jump
-    ref.current.style.width = "320px";
-    ref.current.style.height = "50px";
-    ref.current.style.minWidth = "320px";
-    ref.current.style.minHeight = "50px";
-
-    const container = ref.current;
-
-    window.atOptions = {
-      key,
-      format: "iframe",
-      height: 50,
-      width: 320,
-      params: {},
-    };
-
-    const script = document.createElement("script");
-    script.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
-    script.async = true;
-
-    // append new first
-    container.appendChild(script);
-
-    // remove old nodes AFTER new one inserted (prevents collapse)
-    const t = window.setTimeout(() => {
-      while (container.children.length > 1) {
-        container.removeChild(container.firstChild as Node);
-      }
-    }, 800);
-
-    timeoutRefs.current.push(t);
-  };
-
   useEffect(() => {
-    const doLoad = () => {
-      loadAd(adRef1, "1611ca31419bb9c178b7e5a53931edb0");
+    const loadAds = () => {
+      const cb = Date.now(); // cache buster so ad reloads every time
 
-      const t = window.setTimeout(() => {
-        loadAd(adRef2, "28da3934f715b5b5eccce644d9633aa7");
-      }, 500);
+      // clear old ads before reload
+      if (adRef1.current) adRef1.current.innerHTML = "";
+      if (adRef2.current) adRef2.current.innerHTML = "";
 
-      timeoutRefs.current.push(t);
-    };
+      // Ad 1
+      if (adRef1.current) {
+        const container = document.createElement("div");
+        container.id = "container-cb676fc5c68bf473009afc5fd084f637";
+        adRef1.current.appendChild(container);
 
-    doLoad();
-
-    intervalRef.current = window.setInterval(() => {
-      doLoad();
-    }, 5000);
-
-    return () => {
-      if (intervalRef.current !== null) {
-        window.clearInterval(intervalRef.current);
+        const script = document.createElement("script");
+        script.async = true;
+        script.setAttribute("data-cfasync", "false");
+        script.src =
+          "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js?cb=" + cb;
+        adRef1.current.appendChild(script);
       }
-      timeoutRefs.current.forEach((id) => window.clearTimeout(id));
-      timeoutRefs.current = [];
+
+      // Ad 2
+      if (adRef2.current) {
+        const container = document.createElement("div");
+        container.id = "container-ad3ffd8815977b191739e3734c05e473";
+        adRef2.current.appendChild(container);
+
+        const script = document.createElement("script");
+        script.async = true;
+        script.setAttribute("data-cfasync", "false");
+        script.src =
+          "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js?cb=" + cb;
+        adRef2.current.appendChild(script);
+      }
     };
+
+    // first load
+    loadAds();
+
+    // reload every 5 sec (always)
+    const interval = setInterval(loadAds, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div
-      className="w-full flex flex-row items-center justify-center gap-4 overflow-auto"
+      className="w-full flex flex-row flex-wrap items-center justify-center gap-2 bg-secondary/40 border-t border-border overflow-hidden"
+      style={{ minHeight: 60, maxHeight: 70 }}
       role="complementary"
-      aria-label="Advertisement"
+      aria-label="Footer advertisement"
     >
-      <div ref={adRef1} />
-      <div ref={adRef2} />
+      <div
+        ref={adRef1}
+        className="flex-1 flex justify-center overflow-hidden"
+        style={{ maxHeight: 50 }}
+      />
+      <div
+        ref={adRef2}
+        className="flex-1 flex justify-center overflow-hidden"
+        style={{ maxHeight: 50 }}
+      />
     </div>
   );
 }
