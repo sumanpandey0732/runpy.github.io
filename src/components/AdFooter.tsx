@@ -12,11 +12,20 @@ export function AdFooter() {
     ) => {
       const cb = Date.now();
 
+      // Ensure root holds the absolute buffer correctly
+      root.style.position = "relative";
+
       // hidden buffer (new ad loads here)
       const buffer = document.createElement("div");
       buffer.id = id + "-buffer";
+      
+      // Make buffer overlap perfectly and use opacity instead of visibility
       buffer.style.position = "absolute";
-      buffer.style.visibility = "hidden";
+      buffer.style.top = "0";
+      buffer.style.left = "0";
+      buffer.style.width = "100%";
+      buffer.style.height = "100%";
+      buffer.style.opacity = "0"; 
       buffer.style.pointerEvents = "none";
 
       const script = document.createElement("script");
@@ -27,7 +36,8 @@ export function AdFooter() {
       buffer.appendChild(script);
       root.appendChild(buffer);
 
-      // swap after render delay
+      // 🔥 Increased from 1200ms to 5000ms. 
+      // Gives the ad network plenty of time to load before deleting the old ad.
       setTimeout(() => {
         if (!root) return;
 
@@ -38,11 +48,11 @@ export function AdFooter() {
           if (c !== buffer) c.remove();
         });
 
-        // show new ad
+        // show new ad instantly
         buffer.style.position = "static";
-        buffer.style.visibility = "visible";
+        buffer.style.opacity = "1";
         buffer.style.pointerEvents = "auto";
-      }, 1200);
+      }, 5000); 
     };
 
     const loadAd1 = () => {
@@ -70,8 +80,8 @@ export function AdFooter() {
 
     loadAds();
 
-    // 🔥 FORCE reload every 5s ALWAYS (no vanish)
-    const interval = setInterval(loadAds, 5000);
+    // Reload every 10s ALWAYS
+    const interval = setInterval(loadAds, 10000);
 
     return () => clearInterval(interval);
   }, []);
