@@ -1,108 +1,88 @@
 import { useEffect, useRef } from "react";
 
-export function AdFooter() {
+declare global {
+  interface Window {
+    atOptions?: Record<string, unknown>;
+  }
+}
+
+export function AdBanner() {
   const adRef1 = useRef<HTMLDivElement>(null);
   const adRef2 = useRef<HTMLDivElement>(null);
 
+  const intervalRef = useRef<number | null>(null);
+  const timeoutRefs = useRef<number[]>([]);
+
+  const loadAd = (ref: React.RefObject<HTMLDivElement>, key: string) => {
+    if (!ref.current) return;
+
+    // ✅ ensure fixed height so layout never collapses
+    ref.current.style.width = "320px";
+    ref.current.style.height = "50px";
+    ref.current.style.minWidth = "320px";
+    ref.current.style.minHeight = "50px";
+
+    // create inner container that we clear instead
+    let inner = ref.current.querySelector(".ad-inner") as HTMLDivElement | null;
+
+    if (!inner) {
+      inner = document.createElement("div");
+      inner.className = "ad-inner";
+      ref.current.appendChild(inner);
+    }
+
+    while (inner.firstChild) {
+      inner.removeChild(inner.firstChild);
+    }
+
+    window.atOptions = {
+      key,
+      format: "iframe",
+      height: 50,
+      width: 320,
+      params: {},
+    };
+
+    const script = document.createElement("script");
+    script.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
+    script.async = true;
+    inner.appendChild(script);
+  };
+
   useEffect(() => {
-    const safeSwap = (
-      root: HTMLDivElement,
-      id: string,
-      url: string
-    ) => {
-      const cb = Date.now();
+    const doLoad = () => {
+      loadAd(adRef1, "1611ca31419bb9c178b7e5a53931edb0");
 
-      // Ensure root holds the absolute buffer correctly
-      root.style.position = "relative";
+      const t = window.setTimeout(() => {
+        loadAd(adRef2, "28da3934f715b5b5eccce644d9633aa7");
+      }, 500);
 
-      // hidden buffer (new ad loads here)
-      const buffer = document.createElement("div");
-      buffer.id = id + "-buffer";
-      
-      // Make buffer overlap perfectly and use opacity instead of visibility
-      buffer.style.position = "absolute";
-      buffer.style.top = "0";
-      buffer.style.left = "0";
-      buffer.style.width = "100%";
-      buffer.style.height = "100%";
-      buffer.style.opacity = "0"; 
-      buffer.style.pointerEvents = "none";
-
-      const script = document.createElement("script");
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      script.src = url + "?cb=" + cb;
-
-      buffer.appendChild(script);
-      root.appendChild(buffer);
-
-      // 🔥 Increased from 1200ms to 5000ms. 
-      // Gives the ad network plenty of time to load before deleting the old ad.
-      setTimeout(() => {
-        if (!root) return;
-
-        const children = Array.from(root.children);
-
-        // remove all except buffer
-        children.forEach((c) => {
-          if (c !== buffer) c.remove();
-        });
-
-        // show new ad instantly
-        buffer.style.position = "static";
-        buffer.style.opacity = "1";
-        buffer.style.pointerEvents = "auto";
-      }, 5000); 
+      timeoutRefs.current.push(t);
     };
 
-    const loadAd1 = () => {
-      if (!adRef1.current) return;
-      safeSwap(
-        adRef1.current,
-        "container-cb676fc5c68bf473009afc5fd084f637",
-        "https://walkeralacrityfavorite.com/cb676fc5c68bf473009afc5fd084f637/invoke.js"
-      );
+    doLoad();
+
+    intervalRef.current = window.setInterval(() => {
+      doLoad();
+    }, 5000);
+
+    return () => {
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
+      }
+      timeoutRefs.current.forEach((id) => window.clearTimeout(id));
+      timeoutRefs.current = [];
     };
-
-    const loadAd2 = () => {
-      if (!adRef2.current) return;
-      safeSwap(
-        adRef2.current,
-        "container-ad3ffd8815977b191739e3734c05e473",
-        "https://walkeralacrityfavorite.com/ad3ffd8815977b191739e3734c05e473/invoke.js"
-      );
-    };
-
-    const loadAds = () => {
-      loadAd1();
-      setTimeout(loadAd2, 500);
-    };
-
-    loadAds();
-
-    // Reload every 10s ALWAYS
-    const interval = setInterval(loadAds, 10000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
     <div
-      className="w-full flex flex-row flex-wrap items-center justify-center gap-2 bg-secondary/40 border-t border-border overflow-hidden"
-      style={{ minHeight: 60, maxHeight: 70 }}
+      className="w-full flex flex-row items-center justify-center gap-4 overflow-auto"
       role="complementary"
-      aria-label="Footer advertisement"
+      aria-label="Advertisement"
     >
-      <div
-        ref={adRef1}
-        className="flex-1 flex justify-center overflow-hidden"
-        style={{ minHeight: 50, maxHeight: 50 }}
-      />
-      <div
-        ref={adRef2}
-        className="flex-1 flex justify-center overflow-hidden"
-        style={{ minHeight: 50, maxHeight: 50 }}
-      />
+      <div ref={adRef1} />
+      <div ref={adRef2} />
     </div>
   );
 }
