@@ -65,7 +65,7 @@ export function AdFooter() {
     };
 
     loadAds();
-    const interval = setInterval(loadAds, 30000);
+    const interval = setInterval(loadAds, 60000);
 
     return () => clearInterval(interval);
   }, []);
