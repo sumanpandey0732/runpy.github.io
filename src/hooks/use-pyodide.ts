@@ -13,6 +13,7 @@ export type RunStatus = "idle" | "loading" | "running" | "error" | "success";
 const WORKER_CODE = `
 let pyodide = null;
 let pyodideLoading = false;
+let inputQueue = [];
 
 async function loadPyodideRuntime() {
   if (pyodide) return pyodide;
@@ -26,6 +27,12 @@ async function loadPyodideRuntime() {
       stdout: (text) => self.postMessage({ type: "stdout", text }),
       stderr: (text) => self.postMessage({ type: "stderr", text }),
     });
+
+    // ✅ Add stdin handler
+    pyodide.setStdin({
+      stdin: () => inputQueue.shift() || ""
+    });
+
     self.postMessage({ type: "ready", version: pyodide.version });
     return pyodide;
   } catch (e) {
@@ -36,11 +43,17 @@ async function loadPyodideRuntime() {
 }
 
 self.onmessage = async function(e) {
-  const { type, code, runId } = e.data;
+  const { type, code, runId, value } = e.data;
   
   if (type === "load") {
     self.postMessage({ type: "loading" });
     await loadPyodideRuntime();
+    return;
+  }
+
+  // ✅ Receive input from React
+  if (type === "input") {
+    inputQueue.push(value + "\\n");
     return;
   }
   
@@ -181,11 +194,17 @@ export function usePyodide() {
     worker.postMessage({ type: "load" });
   }, [createWorker]);
 
+  // ✅ New function to send input from React to worker
+  const sendInput = useCallback((value: string) => {
+    workerRef.current?.postMessage({ type: "input", value });
+  }, []);
+
   return {
     run,
     stop,
     clearConsole,
     preload,
+    sendInput, // ✅ added
     status,
     entries,
     executionTime,
