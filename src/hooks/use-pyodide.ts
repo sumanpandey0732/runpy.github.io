@@ -1,4 +1,4 @@
-// Pyodide worker execution hook
+// src/hooks/use-pyodide.ts
 import { useCallback, useRef, useState } from "react";
 
 export interface ConsoleEntry {
@@ -13,30 +13,45 @@ export type RunStatus = "idle" | "loading" | "running" | "error" | "success";
 const WORKER_CODE = `
 let pyodide = null;
 let pyodideLoading = false;
+
+// Input handling: queue + pending resolvers so stdin can await until input arrives.
 let inputQueue = [];
+let pendingResolvers = [];
 
 async function loadPyodideRuntime() {
   if (pyodide) return pyodide;
   if (pyodideLoading) return null;
   pyodideLoading = true;
-  
+
   try {
     importScripts("https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js");
-    pyodide = await loadPyodide({
-      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
-      stdout: (text) => self.postMessage({ type: "stdout", text }),
-      stderr: (text) => self.postMessage({ type: "stderr", text }),
+    pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
+
+    // stdout / stderr -> post to main thread
+    pyodide.setStdout({
+      batched: (text) => self.postMessage({ type: "stdout", text })
+    });
+    pyodide.setStderr({
+      batched: (text) => self.postMessage({ type: "stderr", text })
     });
 
-    // ✅ Add stdin handler
+    // async stdin: wait until an input is pushed from main thread
     pyodide.setStdin({
-      stdin: () => inputQueue.shift() || ""
+      stdin: async () => {
+        if (inputQueue.length > 0) {
+          return inputQueue.shift();
+        }
+        // wait until main thread supplies input
+        return await new Promise((resolve) => {
+          pendingResolvers.push(resolve);
+        });
+      }
     });
 
     self.postMessage({ type: "ready", version: pyodide.version });
     return pyodide;
   } catch (e) {
-    self.postMessage({ type: "error", message: "Failed to load Python runtime: " + e.message });
+    self.postMessage({ type: "error", message: "Failed to load Python runtime: " + (e && e.message ? e.message : e) });
     pyodideLoading = false;
     return null;
   }
@@ -44,40 +59,43 @@ async function loadPyodideRuntime() {
 
 self.onmessage = async function(e) {
   const { type, code, runId, value } = e.data;
-  
+
   if (type === "load") {
     self.postMessage({ type: "loading" });
     await loadPyodideRuntime();
     return;
   }
 
-  // ✅ Receive input from React
+  // Input from main thread: resolve pending or queue it
   if (type === "input") {
-    inputQueue.push(value + "\\n");
+    const v = String(value) + "\\n"; // ensure newline
+    if (pendingResolvers.length > 0) {
+      const r = pendingResolvers.shift();
+      try { r(v); } catch(e) { /* ignore */ }
+    } else {
+      inputQueue.push(v);
+    }
     return;
   }
-  
+
   if (type === "run") {
     if (!pyodide) {
       self.postMessage({ type: "loading" });
       const py = await loadPyodideRuntime();
       if (!py) return;
     }
-    
+
     const startTime = performance.now();
     try {
-      // Reset stdout capture
-      pyodide.runPython(\`
-import sys
-import io
-\`);
-      
+      // ensure a fresh small env for captures if needed
       await pyodide.runPythonAsync(code);
       const elapsed = performance.now() - startTime;
       self.postMessage({ type: "result", success: true, runId, elapsed });
     } catch (err) {
       const elapsed = performance.now() - startTime;
-      self.postMessage({ type: "stderr", text: err.message });
+      // err may be an Error or string
+      const message = err && err.message ? err.message : String(err);
+      self.postMessage({ type: "stderr", text: message });
       self.postMessage({ type: "result", success: false, runId, elapsed });
     }
   }
@@ -138,6 +156,9 @@ export function usePyodide() {
           setStatus("error");
           addEntry("stderr", msg.message);
           break;
+        default:
+          // ignore unknown
+          break;
       }
     };
 
@@ -194,17 +215,19 @@ export function usePyodide() {
     worker.postMessage({ type: "load" });
   }, [createWorker]);
 
-  // ✅ New function to send input from React to worker
+  // sendInput: post to worker AND echo into console so user sees typed text
   const sendInput = useCallback((value: string) => {
+    // echo user input into console (like terminal) so it looks real
+    addEntry("stdout", value + "\\n");
     workerRef.current?.postMessage({ type: "input", value });
-  }, []);
+  }, [addEntry]);
 
   return {
     run,
     stop,
     clearConsole,
     preload,
-    sendInput, // ✅ added
+    sendInput,
     status,
     entries,
     executionTime,
