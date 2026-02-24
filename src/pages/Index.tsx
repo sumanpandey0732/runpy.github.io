@@ -67,6 +67,9 @@ const Index = () => {
   const clearConsole = language === "python" ? py.clearConsole : js.clearConsole;
   const executionTime = language === "python" ? py.executionTime : null;
 
+  // <-- NEW: pass py.sendInput when in python, otherwise noop
+  const sendInput = language === "python" ? py.sendInput : () => {};
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -125,7 +128,12 @@ const Index = () => {
 
   const consolePane = (
     <div className="h-full p-2">
-      <ConsoleOutput entries={entries} onClear={clearConsole} executionTime={executionTime} />
+      <ConsoleOutput
+        entries={entries}
+        onClear={clearConsole}
+        executionTime={executionTime}
+        sendInput={sendInput}
+      />
     </div>
   );
 
@@ -198,4 +206,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Index
