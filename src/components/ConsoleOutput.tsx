@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { Copy, Trash2, Terminal } from "lucide-react";
 import type { ConsoleEntry } from "@/hooks/use-pyodide";
 
@@ -6,19 +6,34 @@ interface ConsoleOutputProps {
   entries: ConsoleEntry[];
   onClear: () => void;
   executionTime: number | null;
+  sendInput: (value: string) => void; // hook se pass
 }
 
-export function ConsoleOutput({ entries, onClear }: ConsoleOutputProps) {
+export function ConsoleOutput({ entries, onClear, sendInput }: ConsoleOutputProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const editableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Focus editable last line if input expected
+    editableRef.current?.focus();
   }, [entries.length]);
 
   const copyAll = useCallback(() => {
     const text = entries.map((e) => e.text).join("\n");
     navigator.clipboard.writeText(text);
   }, [entries]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const value = editableRef.current?.innerText || "";
+      if (value.trim() !== "") {
+        sendInput(value); // send to Pyodide
+        editableRef.current!.innerText = "";
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col h-full rounded-xl overflow-hidden border border-border bg-card shadow-[var(--shadow-card)]">
@@ -39,15 +54,35 @@ export function ConsoleOutput({ entries, onClear }: ConsoleOutputProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 bg-console-bg font-mono text-sm space-y-0.5">
+      <div
+        className="flex-1 overflow-y-auto p-3 bg-console-bg font-mono text-sm space-y-0.5"
+        onKeyDown={handleKeyDown}
+      >
         {entries.length === 0 && (
           <p className="text-muted-foreground/50 text-xs italic">Output will appear here...</p>
         )}
-        {entries.map((entry) => (
-          <div key={entry.id} className={`animate-fade-in leading-relaxed ${getEntryClass(entry.type)}`}>
-            {entry.text}
-          </div>
-        ))}
+
+        {entries.map((entry, idx) => {
+          const isLast = idx === entries.length - 1;
+          return (
+            <div
+              key={entry.id}
+              className={`animate-fade-in leading-relaxed ${getEntryClass(entry.type)}`}
+            >
+              {entry.text}
+              {/* ✅ Make last stdout line editable */}
+              {isLast && entry.type === "stdout" && (
+                <span
+                  ref={editableRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="inline-block w-auto outline-none"
+                  style={{ whiteSpace: "pre" }}
+                ></span>
+              )}
+            </div>
+          );
+        })}
         <div ref={bottomRef} />
       </div>
     </div>
