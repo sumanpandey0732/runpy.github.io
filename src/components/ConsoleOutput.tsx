@@ -1,4 +1,5 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+// src/components/ConsoleOutput.tsx
+import { useRef, useEffect, useCallback } from "react";
 import { Copy, Trash2, Terminal } from "lucide-react";
 import type { ConsoleEntry } from "@/hooks/use-pyodide";
 
@@ -6,7 +7,7 @@ interface ConsoleOutputProps {
   entries: ConsoleEntry[];
   onClear: () => void;
   executionTime: number | null;
-  sendInput: (value: string) => void; // hook se pass
+  sendInput: (value: string) => void;
 }
 
 export function ConsoleOutput({ entries, onClear, sendInput }: ConsoleOutputProps) {
@@ -14,23 +15,45 @@ export function ConsoleOutput({ entries, onClear, sendInput }: ConsoleOutputProp
   const editableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // scroll to bottom whenever entries change
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    // Focus editable last line if input expected
-    editableRef.current?.focus();
+    // focus the inline editable spot (if present)
+    // small timeout so DOM update completes
+    setTimeout(() => {
+      if (editableRef.current) {
+        editableRef.current.focus();
+        // place caret at end
+        const range = document.createRange();
+        range.selectNodeContents(editableRef.current);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
+    }, 20);
   }, [entries.length]);
 
   const copyAll = useCallback(() => {
-    const text = entries.map((e) => e.text).join("\n");
+    const text = entries.map((e) => e.text).join("");
     navigator.clipboard.writeText(text);
   }, [entries]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const value = editableRef.current?.innerText || "";
-      if (value.trim() !== "") {
-        sendInput(value); // send to Pyodide
-        editableRef.current!.innerText = "";
+      const value = editableRef.current?.innerText ?? "";
+      // send even if empty (user may intentionally send empty line)
+      sendInput(value);
+      // clear editable text and keep focus
+      if (editableRef.current) {
+        editableRef.current.innerText = "";
+        // keep caret at end
+        const range = document.createRange();
+        range.selectNodeContents(editableRef.current);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
       }
     }
   };
@@ -69,16 +92,17 @@ export function ConsoleOutput({ entries, onClear, sendInput }: ConsoleOutputProp
               key={entry.id}
               className={`animate-fade-in leading-relaxed ${getEntryClass(entry.type)}`}
             >
-              {entry.text}
-              {/* ✅ Make last stdout line editable */}
+              {/* entry.text already contains its own newline if needed */}
+              <span>{entry.text}</span>
+              {/* show editable inline spot only after the last stdout entry */}
               {isLast && entry.type === "stdout" && (
                 <span
                   ref={editableRef}
                   contentEditable
                   suppressContentEditableWarning
                   className="inline-block w-auto outline-none"
-                  style={{ whiteSpace: "pre" }}
-                ></span>
+                  style={{ whiteSpace: "pre-wrap" }}
+                />
               )}
             </div>
           );
