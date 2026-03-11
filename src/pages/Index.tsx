@@ -8,6 +8,8 @@ import { AdBanner } from "@/components/AdBanner";
 import { AdFooter } from "@/components/AdFooter";
 import { ResizablePanels } from "@/components/ResizablePanels";
 import { CompilerSidebar } from "@/components/CompilerSidebar";
+import { MobileRunButton } from "@/components/MobileRunButton";
+import { Terminal, X } from "lucide-react";
 
 const DEFAULT_PYTHON = `# Welcome to Python Compiler! 🐍
 # Write your Python code and click Run (or Ctrl+Enter)
@@ -60,14 +62,12 @@ const Index = () => {
   const js = useJsRunner();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [showConsole, setShowConsole] = useState(true);
+  const [showConsole, setShowConsole] = useState(false);
 
   const status = language === "python" ? py.status : js.status;
   const entries = language === "python" ? py.entries : js.entries;
   const clearConsole = language === "python" ? py.clearConsole : js.clearConsole;
   const executionTime = language === "python" ? py.executionTime : null;
-
-  // <-- NEW: pass py.sendInput when in python, otherwise noop
   const sendInput = language === "python" ? py.sendInput : () => {};
   const waitingForInput = language === "python" ? py.waitingForInput : false;
 
@@ -84,9 +84,10 @@ const Index = () => {
   }, [py.preload]);
 
   const handleRun = useCallback(() => {
+    if (isMobile) setShowConsole(true);
     if (language === "python") py.run(code);
     else js.run(code);
-  }, [language, code, py, js]);
+  }, [language, code, py, js, isMobile]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -122,13 +123,13 @@ const Index = () => {
   }, [setCode]);
 
   const editorPane = (
-    <div className="h-full p-2">
+    <div className="h-full p-1 sm:p-2">
       <CodeEditor code={code} onChange={setCode} status={status} language={language} />
     </div>
   );
 
   const consolePane = (
-    <div className="h-full p-2">
+    <div className="h-full p-1 sm:p-2">
       <ConsoleOutput
         entries={entries}
         onClear={clearConsole}
@@ -145,7 +146,6 @@ const Index = () => {
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{ background: "var(--gradient-glow)" }} />
-      {/* Secondary glow orbs */}
       <div className="fixed top-1/4 -right-32 w-96 h-96 rounded-full pointer-events-none z-0 opacity-20 blur-3xl"
         style={{ background: "radial-gradient(circle, hsl(270, 60%, 60%), transparent 70%)" }} />
       <div className="fixed -bottom-32 -left-32 w-80 h-80 rounded-full pointer-events-none z-0 opacity-15 blur-3xl"
@@ -180,32 +180,64 @@ const Index = () => {
         />
 
         {isMobile ? (
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 relative">
+            {/* Full-screen editor */}
             <div className="flex-1 min-h-0">{editorPane}</div>
-            <button
-              onClick={() => setShowConsole(!showConsole)}
-              className="px-4 py-1.5 text-xs font-medium text-muted-foreground bg-secondary border-t border-border"
-            >
-              {showConsole ? "▼ Hide Console" : "▲ Show Console"}
-            </button>
-            {showConsole && <div className="h-[40vh] min-h-[200px]">{consolePane}</div>}
+
+            {/* Console overlay on mobile */}
+            {showConsole && (
+              <div className="absolute inset-0 z-30 flex flex-col bg-background/95 backdrop-blur-sm animate-slide-up">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/30">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">Console Output</span>
+                  </div>
+                  <button
+                    onClick={() => setShowConsole(false)}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 min-h-0">{consolePane}</div>
+              </div>
+            )}
+
+            {/* Console indicator badge */}
+            {!showConsole && entries.length > 0 && (
+              <button
+                onClick={() => setShowConsole(true)}
+                className="fixed bottom-6 left-6 z-30 flex items-center gap-2 px-3 py-2 rounded-xl
+                  bg-secondary/90 border border-border text-foreground text-xs font-medium
+                  shadow-lg hover:bg-secondary transition-all md:hidden"
+              >
+                <Terminal className="w-3.5 h-3.5 text-primary" />
+                <span>Console ({entries.length})</span>
+              </button>
+            )}
           </div>
         ) : (
           <ResizablePanels left={editorPane} right={consolePane} />
         )}
 
         <footer className="flex items-center justify-between px-4 py-1.5 border-t border-border text-xs text-muted-foreground bg-secondary/20">
-          <span>
+          <span className="hidden sm:inline">
             {language === "python"
               ? `${py.pyodideVersion ? `Pyodide ${py.pyodideVersion}` : "Python 3.x"} • Ctrl+Enter to run`
               : "JavaScript (V8) • Ctrl+Enter to run"}
           </span>
-          <span className="gradient-text font-semibold">Developed by Santosh pandey ✨</span>
+          <span className="sm:hidden text-[10px]">
+            {language === "python" ? "Python 3.x" : "JavaScript"}
+          </span>
+          <span className="gradient-text font-semibold text-[10px] sm:text-xs">Developed by Santosh pandey ✨</span>
         </footer>
         <AdFooter />
       </div>
+
+      {/* Floating run button for mobile */}
+      {isMobile && !showConsole && <MobileRunButton onRun={handleRun} />}
     </div>
   );
 };
 
-export default Index
+export default Index;

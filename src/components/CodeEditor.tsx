@@ -8,28 +8,147 @@ interface CodeEditorProps {
   language?: "python" | "javascript";
 }
 
+// ── Comprehensive Python suggestions ──
+const PYTHON_KEYWORDS = [
+  "and", "as", "assert", "async", "await", "break", "class", "continue",
+  "def", "del", "elif", "else", "except", "finally", "for", "from",
+  "global", "if", "import", "in", "is", "lambda", "nonlocal", "not",
+  "or", "pass", "raise", "return", "try", "while", "with", "yield",
+];
+
+const PYTHON_BUILTINS = [
+  "print()", "input()", "len()", "range()", "type()", "int()", "float()",
+  "str()", "bool()", "list()", "dict()", "set()", "tuple()", "abs()",
+  "max()", "min()", "sum()", "sorted()", "reversed()", "enumerate()",
+  "zip()", "map()", "filter()", "any()", "all()", "isinstance()",
+  "issubclass()", "hasattr()", "getattr()", "setattr()", "delattr()",
+  "open()", "round()", "pow()", "divmod()", "hex()", "oct()", "bin()",
+  "ord()", "chr()", "format()", "repr()", "id()", "hash()", "dir()",
+  "vars()", "globals()", "locals()", "exec()", "eval()", "compile()",
+  "super()", "property()", "staticmethod()", "classmethod()",
+  "True", "False", "None",
+];
+
+const PYTHON_STR_METHODS = [
+  ".strip()", ".split()", ".join()", ".replace()", ".find()", ".index()",
+  ".count()", ".startswith()", ".endswith()", ".upper()", ".lower()",
+  ".title()", ".capitalize()", ".isdigit()", ".isalpha()", ".isalnum()",
+  ".format()", ".encode()", ".decode()", ".center()", ".ljust()", ".rjust()",
+  ".lstrip()", ".rstrip()", ".partition()", ".zfill()",
+];
+
+const PYTHON_LIST_METHODS = [
+  ".append()", ".extend()", ".insert()", ".remove()", ".pop()", ".clear()",
+  ".index()", ".count()", ".sort()", ".reverse()", ".copy()",
+];
+
+const PYTHON_DICT_METHODS = [
+  ".keys()", ".values()", ".items()", ".get()", ".setdefault()",
+  ".update()", ".pop()", ".popitem()", ".clear()", ".copy()",
+];
+
+const PYTHON_SNIPPETS = [
+  "def function_name():", "class ClassName:", "if __name__ == '__main__':",
+  "for i in range():", "while True:", "try:\n    pass\nexcept Exception as e:",
+  "with open() as f:", "import os", "import sys", "import json",
+  "import math", "import random", "import datetime", "import re",
+  "from collections import", "from typing import",
+  "list comprehension: [x for x in ]", "dict comprehension: {k: v for k, v in }",
+  "lambda x: x", "f\"{}\"",
+];
+
 const PYTHON_SUGGESTIONS = [
-  "print()", "def ", "for ", "while ", "if ", "elif ", "else:", "import ", "from ", "class ",
-  "return ", "try:", "except ", "with ", "as ", "lambda ", "range()", "len()", "input()",
-  "list()", "dict()", "set()", "tuple()", "str()", "int()", "float()", "True", "False", "None",
+  ...PYTHON_KEYWORDS.map(k => k + " "),
+  ...PYTHON_BUILTINS,
+  ...PYTHON_STR_METHODS,
+  ...PYTHON_LIST_METHODS,
+  ...PYTHON_DICT_METHODS,
+  ...PYTHON_SNIPPETS,
+];
+
+// ── Comprehensive JavaScript suggestions ──
+const JS_KEYWORDS = [
+  "const ", "let ", "var ", "function ", "class ", "if ", "else ", "else if ",
+  "for ", "while ", "do ", "switch ", "case ", "break", "continue", "return ",
+  "import ", "export ", "default ", "async ", "await ", "try ", "catch ",
+  "finally ", "throw ", "new ", "delete ", "typeof ", "instanceof ",
+  "yield ", "of ", "in ",
+];
+
+const JS_BUILTINS = [
+  "console.log()", "console.error()", "console.warn()", "console.table()",
+  "console.time()", "console.timeEnd()", "console.group()", "console.groupEnd()",
+  "setTimeout()", "setInterval()", "clearTimeout()", "clearInterval()",
+  "fetch()", "JSON.stringify()", "JSON.parse()",
+  "parseInt()", "parseFloat()", "isNaN()", "isFinite()",
+  "encodeURIComponent()", "decodeURIComponent()",
+  "Math.floor()", "Math.ceil()", "Math.round()", "Math.random()",
+  "Math.max()", "Math.min()", "Math.abs()", "Math.pow()", "Math.sqrt()",
+  "Date.now()", "new Date()", "new Map()", "new Set()", "new WeakMap()",
+  "new Promise()", "Promise.all()", "Promise.race()", "Promise.resolve()",
+  "Object.keys()", "Object.values()", "Object.entries()", "Object.assign()",
+  "Object.freeze()", "Object.create()",
+  "Array.from()", "Array.isArray()", "Array.of()",
+  "true", "false", "null", "undefined", "NaN", "Infinity",
+];
+
+const JS_ARRAY_METHODS = [
+  ".push()", ".pop()", ".shift()", ".unshift()", ".splice()", ".slice()",
+  ".concat()", ".join()", ".reverse()", ".sort()", ".indexOf()", ".lastIndexOf()",
+  ".includes()", ".find()", ".findIndex()", ".filter()", ".map()", ".reduce()",
+  ".reduceRight()", ".forEach()", ".every()", ".some()", ".flat()", ".flatMap()",
+  ".fill()", ".copyWithin()", ".entries()", ".keys()", ".values()", ".at()",
+];
+
+const JS_STRING_METHODS = [
+  ".charAt()", ".charCodeAt()", ".concat()", ".includes()", ".indexOf()",
+  ".lastIndexOf()", ".match()", ".matchAll()", ".replace()", ".replaceAll()",
+  ".search()", ".slice()", ".split()", ".startsWith()", ".endsWith()",
+  ".substring()", ".toLowerCase()", ".toUpperCase()", ".trim()", ".trimStart()",
+  ".trimEnd()", ".padStart()", ".padEnd()", ".repeat()", ".at()",
+];
+
+const JS_SNIPPETS = [
+  "const fn = () => {}", "function name() {}", "class Name {}",
+  "async function name() {}", "for (let i = 0; i < ; i++) {}",
+  "for (const item of ) {}", "for (const key in ) {}",
+  "try {\n} catch (e) {\n}", "switch () {\n  case :\n    break;\n  default:\n}",
+  "new Promise((resolve, reject) => {})",
+  "const result = await fetch()",
+  ".then().catch()", "addEventListener()", "removeEventListener()",
+  "document.querySelector()", "document.getElementById()",
+  "export default", "export const", "import { } from ''",
+  "Array.from({ length: }, (_, i) => i)",
+  "Object.entries().map(([key, value]) => )",
+  "?.optional?.chaining", "??nullish??coalescing",
+  "template literal: `${}`",
 ];
 
 const JS_SUGGESTIONS = [
-  "console.log()", "function ", "const ", "let ", "var ", "if ", "else ", "for ", "while ",
-  "return ", "class ", "import ", "export ", "async ", "await ", "try ", "catch ", "throw ",
-  "new ", "this", "true", "false", "null", "undefined", "Array", "Object", "Promise",
-  "setTimeout()", "setInterval()", "fetch()",
+  ...JS_KEYWORDS,
+  ...JS_BUILTINS,
+  ...JS_ARRAY_METHODS,
+  ...JS_STRING_METHODS,
+  ...JS_SNIPPETS,
 ];
 
 export function CodeEditor({ code, onChange, status, language = "python" }: CodeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorInfo, setCursorInfo] = useState({ line: 1, col: 1 });
-  const [suggestion, setSuggestion] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedSuggIdx, setSelectedSuggIdx] = useState(0);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const lineCount = code.split("\n").length;
   const pool = language === "python" ? PYTHON_SUGGESTIONS : JS_SUGGESTIONS;
+
+  // Auto-scroll selected suggestion into view
+  useEffect(() => {
+    if (suggestionsRef.current && suggestions.length > 0) {
+      const selected = suggestionsRef.current.children[selectedSuggIdx] as HTMLElement;
+      selected?.scrollIntoView({ block: "nearest" });
+    }
+  }, [selectedSuggIdx, suggestions.length]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -79,6 +198,23 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
           ta.selectionStart = ta.selectionEnd = start + 4;
         });
       }
+
+      // Auto-close brackets and quotes
+      const pairs: Record<string, string> = { "(": ")", "[": "]", "{": "}", "'": "'", '"': '"', "`": "`" };
+      if (pairs[e.key]) {
+        const ta = e.currentTarget;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        if (start !== end) return; // don't auto-close on selection
+        e.preventDefault();
+        const before = code.substring(0, start);
+        const after = code.substring(start);
+        const newCode = before + e.key + pairs[e.key] + after;
+        onChange(newCode);
+        requestAnimationFrame(() => {
+          ta.selectionStart = ta.selectionEnd = start + 1;
+        });
+      }
     },
     [code, onChange, suggestions, selectedSuggIdx]
   );
@@ -92,8 +228,10 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
       const before = val.substring(0, pos);
       const word = before.match(/[\w.]+$/)?.[0] || "";
 
-      if (word.length >= 2) {
-        const matches = pool.filter((s) => s.toLowerCase().startsWith(word.toLowerCase())).slice(0, 5);
+      if (word.length >= 1) {
+        const matches = pool
+          .filter((s) => s.toLowerCase().startsWith(word.toLowerCase()) && s.toLowerCase() !== word.toLowerCase())
+          .slice(0, 8);
         setSuggestions(matches);
         setSelectedSuggIdx(0);
       } else {
@@ -137,14 +275,14 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
           </div>
           <span className="text-xs text-muted-foreground font-mono ml-2">{fileName}</span>
         </div>
-        <span className="text-xs text-muted-foreground">{langLabel}</span>
+        <span className="text-xs text-muted-foreground hidden sm:inline">{langLabel}</span>
       </div>
 
       {/* Editor area */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Line numbers */}
         <div
-          className="flex flex-col items-end py-3 px-2 bg-editor-gutter text-editor-gutter-fg font-mono text-xs leading-6 select-none overflow-hidden min-w-[3rem]"
+          className="flex flex-col items-end py-3 px-2 bg-editor-gutter text-editor-gutter-fg font-mono text-xs leading-6 select-none overflow-hidden min-w-[2.5rem] sm:min-w-[3rem]"
           aria-hidden="true"
         >
           {Array.from({ length: lineCount }, (_, i) => (
@@ -171,14 +309,15 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
 
         {/* Suggestions dropdown */}
         {suggestions.length > 0 && (
-          <div className="absolute z-50 top-12 left-16 glass rounded-lg border border-border shadow-[var(--shadow-elevated)] overflow-hidden min-w-[180px] animate-fade-in">
+          <div
+            ref={suggestionsRef}
+            className="absolute z-50 top-12 left-16 glass rounded-lg border border-border shadow-[var(--shadow-elevated)] overflow-hidden overflow-y-auto max-h-[200px] min-w-[220px] animate-fade-in"
+          >
             {suggestions.map((s, i) => (
               <button
                 key={s}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  setSelectedSuggIdx(i);
-                  // apply
                   const ta = textareaRef.current;
                   if (!ta) return;
                   const pos = ta.selectionStart;
@@ -189,10 +328,13 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
                   onChange(before + completion + after);
                   setSuggestions([]);
                 }}
-                className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors
+                className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors flex items-center gap-2
                   ${i === selectedSuggIdx ? "bg-primary/20 text-primary" : "text-foreground hover:bg-secondary/60"}`}
               >
-                {s}
+                <span className="w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold bg-primary/10 text-primary shrink-0">
+                  {s.startsWith(".") ? "M" : s.endsWith("()") ? "F" : s.endsWith(" ") ? "K" : "V"}
+                </span>
+                <span className="truncate">{s}</span>
               </button>
             ))}
           </div>
