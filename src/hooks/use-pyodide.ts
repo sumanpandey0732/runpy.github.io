@@ -14,9 +14,14 @@ const WORKER_CODE = `
 let pyodide = null;
 let pyodideLoading = false;
 
-// Input handling: queue + pending resolvers so stdin can await until input arrives.
+// SharedArrayBuffer-based synchronous stdin
+let sharedControl = null; // Int32Array(1) - 0=waiting, 1=data ready
+let sharedData = null;    // Uint8Array for input string
+let sabAvailable = false;
+
+// Fallback queue for non-SAB environments
 let inputQueue = [];
-let pendingResolvers = [];
+let sabFallbackMode = false;
 
 async function loadPyodideRuntime() {
   if (pyodide) return pyodide;
@@ -35,20 +40,39 @@ async function loadPyodideRuntime() {
       batched: (text) => self.postMessage({ type: "stderr", text })
     });
 
-    // async stdin: wait until an input is pushed from main thread
-    pyodide.setStdin({
-      stdin: async () => {
-        if (inputQueue.length > 0) {
-          return inputQueue.shift();
+    // Set up stdin based on whether SharedArrayBuffer is available
+    if (sabAvailable && sharedControl && sharedData) {
+      pyodide.setStdin({
+        stdin: () => {
+          // Signal main thread we need input
+          self.postMessage({ type: "input_request" });
+          // Reset control flag
+          Atomics.store(sharedControl, 0, 0);
+          // Block until main thread writes data and sets control to 1
+          Atomics.wait(sharedControl, 0, 0);
+          // Read the input string
+          let len = 0;
+          while (sharedData[len] !== 0 && len < 4000) len++;
+          const decoder = new TextDecoder();
+          return decoder.decode(sharedData.slice(0, len));
         }
-        // signal main thread that we need input
-        self.postMessage({ type: "input_request" });
-        // wait until main thread supplies input
-        return await new Promise((resolve) => {
-          pendingResolvers.push(resolve);
-        });
-      }
-    });
+      });
+    } else {
+      // Fallback: use queue-based approach (limited - needs inputs pre-queued)
+      sabFallbackMode = true;
+      pyodide.setStdin({
+        stdin: () => {
+          if (inputQueue.length > 0) {
+            return inputQueue.shift();
+          }
+          // Signal main thread we need input, but we can't block
+          self.postMessage({ type: "input_request" });
+          // Return empty - will cause issues but better than crash
+          // We'll implement a polling approach
+          return "";
+        }
+      });
+    }
 
     self.postMessage({ type: "ready", version: pyodide.version });
     return pyodide;
@@ -62,25 +86,34 @@ async function loadPyodideRuntime() {
 self.onmessage = async function(e) {
   const { type, code, runId, value } = e.data;
 
+  if (type === "init_sab") {
+    try {
+      sharedControl = new Int32Array(e.data.sab, 0, 1);
+      sharedData = new Uint8Array(e.data.sab, 4);
+      sabAvailable = true;
+    } catch(err) {
+      sabAvailable = false;
+    }
+    return;
+  }
+
   if (type === "load") {
     self.postMessage({ type: "loading" });
     await loadPyodideRuntime();
     return;
   }
 
-  // Input from main thread: resolve pending or queue it
+  // Input from main thread (fallback mode)
   if (type === "input") {
-    const v = String(value) + "\\n"; // ensure newline
-    if (pendingResolvers.length > 0) {
-      const r = pendingResolvers.shift();
-      try { r(v); } catch(e) { /* ignore */ }
-    } else {
-      inputQueue.push(v);
-    }
+    const v = String(value) + "\\n";
+    inputQueue.push(v);
     return;
   }
 
   if (type === "run") {
+    // Clear any leftover input
+    inputQueue = [];
+
     if (!pyodide) {
       self.postMessage({ type: "loading" });
       const py = await loadPyodideRuntime();
@@ -89,13 +122,11 @@ self.onmessage = async function(e) {
 
     const startTime = performance.now();
     try {
-      // ensure a fresh small env for captures if needed
       await pyodide.runPythonAsync(code);
       const elapsed = performance.now() - startTime;
       self.postMessage({ type: "result", success: true, runId, elapsed });
     } catch (err) {
       const elapsed = performance.now() - startTime;
-      // err may be an Error or string
       const message = err && err.message ? err.message : String(err);
       self.postMessage({ type: "stderr", text: message });
       self.postMessage({ type: "result", success: false, runId, elapsed });
@@ -108,11 +139,15 @@ export function usePyodide() {
   const workerRef = useRef<Worker | null>(null);
   const runIdRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sabRef = useRef<SharedArrayBuffer | null>(null);
+  const sabControlRef = useRef<Int32Array | null>(null);
+  const sabDataRef = useRef<Uint8Array | null>(null);
   const [status, setStatus] = useState<RunStatus>("idle");
   const [pyodideVersion, setPyodideVersion] = useState<string | null>(null);
   const [entries, setEntries] = useState<ConsoleEntry[]>([]);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [waitingForInput, setWaitingForInput] = useState(false);
+  const sabAvailableRef = useRef(false);
 
   const addEntry = useCallback((type: ConsoleEntry["type"], text: string) => {
     const entry: ConsoleEntry = {
@@ -124,6 +159,20 @@ export function usePyodide() {
     setEntries((prev) => [...prev, entry]);
   }, []);
 
+  const initSharedBuffer = useCallback(() => {
+    try {
+      const sab = new SharedArrayBuffer(4 + 4096);
+      sabRef.current = sab;
+      sabControlRef.current = new Int32Array(sab, 0, 1);
+      sabDataRef.current = new Uint8Array(sab, 4);
+      sabAvailableRef.current = true;
+      return sab;
+    } catch {
+      sabAvailableRef.current = false;
+      return null;
+    }
+  }, []);
+
   const createWorker = useCallback(() => {
     if (workerRef.current) {
       workerRef.current.terminate();
@@ -132,6 +181,12 @@ export function usePyodide() {
     const url = URL.createObjectURL(blob);
     const worker = new Worker(url);
     URL.revokeObjectURL(url);
+
+    // Try to set up SharedArrayBuffer
+    const sab = initSharedBuffer();
+    if (sab) {
+      worker.postMessage({ type: "init_sab", sab });
+    }
 
     worker.onmessage = (e) => {
       const msg = e.data;
@@ -164,7 +219,6 @@ export function usePyodide() {
           addEntry("stderr", msg.message);
           break;
         default:
-          // ignore unknown
           break;
       }
     };
@@ -176,10 +230,10 @@ export function usePyodide() {
 
     workerRef.current = worker;
     return worker;
-  }, [addEntry]);
+  }, [addEntry, initSharedBuffer]);
 
   const run = useCallback(
-    (code: string, timeout = 15000) => {
+    (code: string, timeout = 30000) => {
       if (!code.trim()) {
         addEntry("info", "⚠️ No code to run.");
         return;
@@ -209,6 +263,7 @@ export function usePyodide() {
       workerRef.current = null;
     }
     setStatus("idle");
+    setWaitingForInput(false);
     addEntry("info", "🛑 Execution stopped.");
   }, [addEntry]);
 
@@ -222,10 +277,23 @@ export function usePyodide() {
     worker.postMessage({ type: "load" });
   }, [createWorker]);
 
-  // sendInput: post to worker AND echo into console so user sees typed text
+  // sendInput: write to SharedArrayBuffer if available, otherwise fallback to message
   const sendInput = useCallback((value: string) => {
     addEntry("stdout", value + "\n");
-    workerRef.current?.postMessage({ type: "input", value });
+
+    if (sabAvailableRef.current && sabControlRef.current && sabDataRef.current) {
+      // Write input to SharedArrayBuffer
+      const encoded = new TextEncoder().encode(value + "\n");
+      sabDataRef.current.fill(0); // clear
+      sabDataRef.current.set(encoded);
+      // Signal worker that data is ready
+      Atomics.store(sabControlRef.current, 0, 1);
+      Atomics.notify(sabControlRef.current, 0);
+    } else {
+      // Fallback: send via message
+      workerRef.current?.postMessage({ type: "input", value });
+    }
+
     setWaitingForInput(false);
   }, [addEntry]);
 
