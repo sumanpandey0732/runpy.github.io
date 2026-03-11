@@ -150,10 +150,14 @@ export function usePyodide() {
         case "stderr":
           addEntry("stderr", msg.text);
           break;
+        case "input_request":
+          setWaitingForInput(true);
+          break;
         case "result":
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           setStatus(msg.success ? "success" : "error");
           setExecutionTime(msg.elapsed);
+          setWaitingForInput(false);
           break;
         case "error":
           setStatus("error");
