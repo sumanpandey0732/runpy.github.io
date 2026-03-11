@@ -134,6 +134,7 @@ const Index = () => {
         onClear={clearConsole}
         executionTime={executionTime}
         sendInput={sendInput}
+        waitingForInput={waitingForInput}
       />
     </div>
   );

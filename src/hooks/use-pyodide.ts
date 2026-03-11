@@ -239,5 +239,6 @@ export function usePyodide() {
     entries,
     executionTime,
     pyodideVersion,
+    waitingForInput,
   };
 }
