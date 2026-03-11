@@ -224,9 +224,9 @@ export function usePyodide() {
 
   // sendInput: post to worker AND echo into console so user sees typed text
   const sendInput = useCallback((value: string) => {
-    // echo user input into console (like terminal) so it looks real
-    addEntry("stdout", value + "\\n");
+    addEntry("stdout", value + "\n");
     workerRef.current?.postMessage({ type: "input", value });
+    setWaitingForInput(false);
   }, [addEntry]);
 
   return {
