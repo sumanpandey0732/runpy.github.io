@@ -41,6 +41,8 @@ async function loadPyodideRuntime() {
         if (inputQueue.length > 0) {
           return inputQueue.shift();
         }
+        // signal main thread that we need input
+        self.postMessage({ type: "input_request" });
         // wait until main thread supplies input
         return await new Promise((resolve) => {
           pendingResolvers.push(resolve);
