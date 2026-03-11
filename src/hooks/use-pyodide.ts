@@ -112,6 +112,7 @@ export function usePyodide() {
   const [pyodideVersion, setPyodideVersion] = useState<string | null>(null);
   const [entries, setEntries] = useState<ConsoleEntry[]>([]);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const [waitingForInput, setWaitingForInput] = useState(false);
 
   const addEntry = useCallback((type: ConsoleEntry["type"], text: string) => {
     const entry: ConsoleEntry = {
