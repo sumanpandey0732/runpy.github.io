@@ -69,6 +69,7 @@ const Index = () => {
 
   // <-- NEW: pass py.sendInput when in python, otherwise noop
   const sendInput = language === "python" ? py.sendInput : () => {};
+  const waitingForInput = language === "python" ? py.waitingForInput : false;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -133,6 +134,7 @@ const Index = () => {
         onClear={clearConsole}
         executionTime={executionTime}
         sendInput={sendInput}
+        waitingForInput={waitingForInput}
       />
     </div>
   );

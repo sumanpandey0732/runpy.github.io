@@ -41,6 +41,8 @@ async function loadPyodideRuntime() {
         if (inputQueue.length > 0) {
           return inputQueue.shift();
         }
+        // signal main thread that we need input
+        self.postMessage({ type: "input_request" });
         // wait until main thread supplies input
         return await new Promise((resolve) => {
           pendingResolvers.push(resolve);
@@ -110,6 +112,7 @@ export function usePyodide() {
   const [pyodideVersion, setPyodideVersion] = useState<string | null>(null);
   const [entries, setEntries] = useState<ConsoleEntry[]>([]);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const [waitingForInput, setWaitingForInput] = useState(false);
 
   const addEntry = useCallback((type: ConsoleEntry["type"], text: string) => {
     const entry: ConsoleEntry = {
@@ -147,10 +150,14 @@ export function usePyodide() {
         case "stderr":
           addEntry("stderr", msg.text);
           break;
+        case "input_request":
+          setWaitingForInput(true);
+          break;
         case "result":
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           setStatus(msg.success ? "success" : "error");
           setExecutionTime(msg.elapsed);
+          setWaitingForInput(false);
           break;
         case "error":
           setStatus("error");
@@ -217,9 +224,9 @@ export function usePyodide() {
 
   // sendInput: post to worker AND echo into console so user sees typed text
   const sendInput = useCallback((value: string) => {
-    // echo user input into console (like terminal) so it looks real
-    addEntry("stdout", value + "\\n");
+    addEntry("stdout", value + "\n");
     workerRef.current?.postMessage({ type: "input", value });
+    setWaitingForInput(false);
   }, [addEntry]);
 
   return {
@@ -232,5 +239,6 @@ export function usePyodide() {
     entries,
     executionTime,
     pyodideVersion,
+    waitingForInput,
   };
 }
