@@ -109,9 +109,12 @@ self.onmessage = async function(e) {
     return;
   }
 
-  if (type === "run") {
-    // Clear any leftover input
+  if (type === "reset_input_queue") {
     inputQueue = [];
+    return;
+  }
+
+  if (type === "run") {
 
     if (!pyodide) {
       self.postMessage({ type: "loading" });
