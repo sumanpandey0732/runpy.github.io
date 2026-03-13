@@ -246,6 +246,22 @@ export function usePyodide() {
       const runId = ++runIdRef.current;
       setStatus("running");
       setExecutionTime(null);
+      setWaitingForInput(false);
+
+      worker.postMessage({ type: "reset_input_queue" });
+
+      // Compatibility mode: pre-collect inputs when SharedArrayBuffer is unavailable.
+      if (!sabAvailableRef.current && /\binput\s*\(/.test(code)) {
+        const literalPrompts = [...code.matchAll(/input\((['"`])([^'"`]*)\1\)/g)].map((m) => m[2]);
+        const expectedInputs = Math.min((code.match(/\binput\s*\(/g) || []).length, 8);
+        addEntry("info", "📝 Compatibility input mode enabled for this browser.");
+
+        for (let i = 0; i < expectedInputs; i++) {
+          const label = literalPrompts[i]?.trim() || `Input ${i + 1}`;
+          const value = window.prompt(label) ?? "";
+          worker.postMessage({ type: "input", value });
+        }
+      }
 
       worker.postMessage({ type: "run", code, runId });
 
