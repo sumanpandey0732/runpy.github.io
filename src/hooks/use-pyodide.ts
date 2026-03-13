@@ -58,18 +58,17 @@ async function loadPyodideRuntime() {
         }
       });
     } else {
-      // Fallback: use queue-based approach (limited - needs inputs pre-queued)
+      // Fallback mode: only supports pre-queued input (no blocking without SharedArrayBuffer)
       sabFallbackMode = true;
       pyodide.setStdin({
         stdin: () => {
           if (inputQueue.length > 0) {
             return inputQueue.shift();
           }
-          // Signal main thread we need input, but we can't block
           self.postMessage({ type: "input_request" });
-          // Return empty - will cause issues but better than crash
-          // We'll implement a polling approach
-          return "";
+          // Prevent OSError in compatibility mode when no input is queued yet.
+          // Returning newline gives Python input() an empty string instead of crashing.
+          return "\n";
         }
       });
     }
