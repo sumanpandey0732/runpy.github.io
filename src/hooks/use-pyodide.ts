@@ -302,8 +302,9 @@ export function usePyodide() {
     if (sabAvailableRef.current && sabControlRef.current && sabDataRef.current) {
       // Write input to SharedArrayBuffer
       const encoded = new TextEncoder().encode(value + "\n");
+      const maxBytes = sabDataRef.current.length - 1;
       sabDataRef.current.fill(0); // clear
-      sabDataRef.current.set(encoded);
+      sabDataRef.current.set(encoded.slice(0, maxBytes));
       // Signal worker that data is ready
       Atomics.store(sabControlRef.current, 0, 1);
       Atomics.notify(sabControlRef.current, 0);
