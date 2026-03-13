@@ -67,8 +67,8 @@ async function loadPyodideRuntime() {
           }
           self.postMessage({ type: "input_request" });
           // Prevent OSError in compatibility mode when no input is queued yet.
-          // Returning newline gives Python input() an empty string instead of crashing.
-          return "\n";
+          // Returning escaped newline gives Python input() an empty string instead of crashing.
+          return "\\n";
         }
       });
     }
