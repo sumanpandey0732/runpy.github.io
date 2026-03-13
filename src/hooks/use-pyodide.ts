@@ -58,18 +58,17 @@ async function loadPyodideRuntime() {
         }
       });
     } else {
-      // Fallback: use queue-based approach (limited - needs inputs pre-queued)
+      // Fallback mode: only supports pre-queued input (no blocking without SharedArrayBuffer)
       sabFallbackMode = true;
       pyodide.setStdin({
         stdin: () => {
           if (inputQueue.length > 0) {
             return inputQueue.shift();
           }
-          // Signal main thread we need input, but we can't block
           self.postMessage({ type: "input_request" });
-          // Return empty - will cause issues but better than crash
-          // We'll implement a polling approach
-          return "";
+          // Prevent OSError in compatibility mode when no input is queued yet.
+          // Returning newline gives Python input() an empty string instead of crashing.
+          return "\n";
         }
       });
     }
@@ -110,9 +109,12 @@ self.onmessage = async function(e) {
     return;
   }
 
-  if (type === "run") {
-    // Clear any leftover input
+  if (type === "reset_input_queue") {
     inputQueue = [];
+    return;
+  }
+
+  if (type === "run") {
 
     if (!pyodide) {
       self.postMessage({ type: "loading" });
@@ -186,6 +188,8 @@ export function usePyodide() {
     const sab = initSharedBuffer();
     if (sab) {
       worker.postMessage({ type: "init_sab", sab });
+    } else {
+      addEntry("info", "⚠️ Interactive stdin is running in compatibility mode on this browser.");
     }
 
     worker.onmessage = (e) => {
@@ -244,6 +248,22 @@ export function usePyodide() {
       const runId = ++runIdRef.current;
       setStatus("running");
       setExecutionTime(null);
+      setWaitingForInput(false);
+
+      worker.postMessage({ type: "reset_input_queue" });
+
+      // Compatibility mode: pre-collect inputs when SharedArrayBuffer is unavailable.
+      if (!sabAvailableRef.current && /\binput\s*\(/.test(code)) {
+        const literalPrompts = [...code.matchAll(/input\((['"`])([^'"`]*)\1\)/g)].map((m) => m[2]);
+        const expectedInputs = Math.min((code.match(/\binput\s*\(/g) || []).length, 8);
+        addEntry("info", "📝 Compatibility input mode enabled for this browser.");
+
+        for (let i = 0; i < expectedInputs; i++) {
+          const label = literalPrompts[i]?.trim() || `Input ${i + 1}`;
+          const value = window.prompt(label) ?? "";
+          worker.postMessage({ type: "input", value });
+        }
+      }
 
       worker.postMessage({ type: "run", code, runId });
 
@@ -284,8 +304,9 @@ export function usePyodide() {
     if (sabAvailableRef.current && sabControlRef.current && sabDataRef.current) {
       // Write input to SharedArrayBuffer
       const encoded = new TextEncoder().encode(value + "\n");
+      const maxBytes = sabDataRef.current.length - 1;
       sabDataRef.current.fill(0); // clear
-      sabDataRef.current.set(encoded);
+      sabDataRef.current.set(encoded.slice(0, maxBytes));
       // Signal worker that data is ready
       Atomics.store(sabControlRef.current, 0, 1);
       Atomics.notify(sabControlRef.current, 0);
