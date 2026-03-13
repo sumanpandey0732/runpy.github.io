@@ -76,14 +76,14 @@ export function ConsoleOutput({ entries, onClear, sendInput, waitingForInput }: 
 
       {waitingForInput && (
         <div className="flex items-center gap-2 px-3 py-2 border-t border-border bg-console-bg font-mono text-sm">
-          <span className="text-green-400 font-bold select-none">&gt;</span>
+          <span className="text-primary font-bold select-none">&gt;</span>
           <input
             ref={inputRef}
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground/50 caret-green-400"
+            className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground/50 caret-primary"
             placeholder="Type input and press Enter..."
             autoComplete="off"
             spellCheck={false}

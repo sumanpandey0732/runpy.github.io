@@ -4,13 +4,22 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
+const sharedArrayBufferHeaders = {
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Embedder-Policy": "require-corp",
+};
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: sharedArrayBufferHeaders,
     hmr: {
       overlay: false,
     },
+  },
+  preview: {
+    headers: sharedArrayBufferHeaders,
   },
   plugins: [
     react(),
