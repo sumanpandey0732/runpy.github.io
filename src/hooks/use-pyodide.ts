@@ -188,6 +188,8 @@ export function usePyodide() {
     const sab = initSharedBuffer();
     if (sab) {
       worker.postMessage({ type: "init_sab", sab });
+    } else {
+      addEntry("info", "⚠️ Interactive stdin is running in compatibility mode on this browser.");
     }
 
     worker.onmessage = (e) => {
