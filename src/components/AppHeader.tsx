@@ -27,7 +27,7 @@ export function AppHeader({ onRun, onStop, onClear, onDownload, onUpload, langua
             {language === "python" ? "Python" : "JavaScript"}
           </h1>
           <p className="text-[10px] text-muted-foreground leading-tight">
-            {language === "python" ? "Pyodide WASM" : "Browser V8"}
+            {language === "python" ? "Python 3.11 (Browser)" : "Browser V8"}
           </p>
         </div>
       </div>

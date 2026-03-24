@@ -409,7 +409,7 @@ export function CodeEditor({ code, onChange, status, language = "python" }: Code
   }[status];
 
   const fileName = language === "python" ? "main.py" : "main.js";
-  const langLabel = language === "python" ? "Python 3.x (Pyodide)" : "JavaScript (V8)";
+  const langLabel = language === "python" ? "Python 3.11" : "JavaScript (V8)";
 
   return (
     <div className="flex flex-col h-full rounded-xl overflow-hidden border border-border bg-card shadow-[var(--shadow-card)] relative card-3d">

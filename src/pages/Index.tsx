@@ -4,6 +4,7 @@ import { useJsRunner } from "@/hooks/use-js-runner";
 import { AppHeader } from "@/components/AppHeader";
 import { CodeEditor } from "@/components/CodeEditor";
 import { ConsoleOutput } from "@/components/ConsoleOutput";
+import { StdinInput } from "@/components/StdinInput";
 import { AdBanner } from "@/components/AdBanner";
 import { AdFooter } from "@/components/AdFooter";
 import { ResizablePanels } from "@/components/ResizablePanels";
@@ -14,20 +15,10 @@ import { Terminal, X } from "lucide-react";
 const DEFAULT_PYTHON = `# Welcome to Python Compiler! 🐍
 # Write your Python code and click Run (or Ctrl+Enter)
 
-def fibonacci(n):
-    """Generate Fibonacci sequence up to n terms"""
-    a, b = 0, 1
-    result = []
-    for _ in range(n):
-        result.append(a)
-        a, b = b, a + b
-    return result
-
-# Try it out!
-print("Fibonacci sequence (first 10 terms):")
-print(fibonacci(10))
-
-print("\\nHello from Python in your browser! 🎉")
+# Example with input() — add values in the stdin box below ⬇️
+name = input("Enter your name: ")
+age = input("Enter your age: ")
+print(f"Hello {name}! You are {age} years old. 🎉")
 `;
 
 const DEFAULT_JS = `// Welcome to JavaScript Compiler! ⚡
@@ -43,10 +34,8 @@ function fibonacci(n) {
   return result;
 }
 
-// Try it out!
 console.log("Fibonacci sequence (first 10 terms):");
 console.log(fibonacci(10));
-
 console.log("\\nHello from JavaScript! 🎉");
 `;
 
@@ -54,6 +43,7 @@ const Index = () => {
   const [language, setLanguage] = useState<"python" | "javascript">("python");
   const [pyCode, setPyCode] = useState(DEFAULT_PYTHON);
   const [jsCode, setJsCode] = useState(DEFAULT_JS);
+  const [stdinText, setStdinText] = useState("Alice\n25");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const code = language === "python" ? pyCode : jsCode;
   const setCode = language === "python" ? setPyCode : setJsCode;
@@ -68,8 +58,6 @@ const Index = () => {
   const entries = language === "python" ? py.entries : js.entries;
   const clearConsole = language === "python" ? py.clearConsole : js.clearConsole;
   const executionTime = language === "python" ? py.executionTime : null;
-  const sendInput = language === "python" ? py.sendInput : () => {};
-  const waitingForInput = language === "python" ? py.waitingForInput : false;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -85,9 +73,13 @@ const Index = () => {
 
   const handleRun = useCallback(() => {
     if (isMobile) setShowConsole(true);
-    if (language === "python") py.run(code);
-    else js.run(code);
-  }, [language, code, py, js, isMobile]);
+    if (language === "python") {
+      const lines = stdinText.split("\n").filter((l) => l.length > 0);
+      py.run(code, lines);
+    } else {
+      js.run(code);
+    }
+  }, [language, code, py, js, isMobile, stdinText]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -123,8 +115,13 @@ const Index = () => {
   }, [setCode]);
 
   const editorPane = (
-    <div className="h-full p-1 sm:p-2">
-      <CodeEditor code={code} onChange={setCode} status={status} language={language} />
+    <div className="h-full flex flex-col gap-2 p-1 sm:p-2">
+      <div className="flex-1 min-h-0">
+        <CodeEditor code={code} onChange={setCode} status={status} language={language} />
+      </div>
+      {language === "python" && (
+        <StdinInput value={stdinText} onChange={setStdinText} />
+      )}
     </div>
   );
 
@@ -134,8 +131,6 @@ const Index = () => {
         entries={entries}
         onClear={clearConsole}
         executionTime={executionTime}
-        sendInput={sendInput}
-        waitingForInput={waitingForInput}
       />
     </div>
   );
@@ -144,7 +139,6 @@ const Index = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{ background: "var(--gradient-glow)" }} />
       <div className="fixed top-1/4 -right-32 w-96 h-96 rounded-full pointer-events-none z-0 opacity-20 blur-3xl"
         style={{ background: "radial-gradient(circle, hsl(270, 60%, 60%), transparent 70%)" }} />
@@ -181,10 +175,8 @@ const Index = () => {
 
         {isMobile ? (
           <div className="flex-1 flex flex-col min-h-0 relative">
-            {/* Full-screen editor */}
-            <div className="flex-1 min-h-0">{editorPane}</div>
+            <div className="flex-1 min-h-0 overflow-y-auto">{editorPane}</div>
 
-            {/* Console overlay on mobile */}
             {showConsole && (
               <div className="absolute inset-0 z-30 flex flex-col bg-background/95 backdrop-blur-sm animate-slide-up">
                 <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/30">
@@ -203,7 +195,6 @@ const Index = () => {
               </div>
             )}
 
-            {/* Console indicator badge */}
             {!showConsole && entries.length > 0 && (
               <button
                 onClick={() => setShowConsole(true)}
@@ -234,7 +225,6 @@ const Index = () => {
         <AdFooter />
       </div>
 
-      {/* Floating run button for mobile */}
       {isMobile && !showConsole && <MobileRunButton onRun={handleRun} />}
     </div>
   );
