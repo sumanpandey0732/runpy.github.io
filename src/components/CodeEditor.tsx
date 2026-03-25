@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from "react";
-import type { RunStatus } from "@/hooks/use-pyodide";
+import type { RunStatus } from "@/hooks/use-code-runner";
 
 interface CodeEditorProps {
   code: string;

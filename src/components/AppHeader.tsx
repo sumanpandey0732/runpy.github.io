@@ -1,5 +1,5 @@
 import { Play, Square, Trash2, Download, Upload, Code2 } from "lucide-react";
-import type { RunStatus } from "@/hooks/use-pyodide";
+import type { RunStatus } from "@/hooks/use-code-runner";
 
 interface AppHeaderProps {
   onRun: () => void;
@@ -27,7 +27,7 @@ export function AppHeader({ onRun, onStop, onClear, onDownload, onUpload, langua
             {language === "python" ? "Python" : "JavaScript"}
           </h1>
           <p className="text-[10px] text-muted-foreground leading-tight">
-            {language === "python" ? "Python 3.11 (Browser)" : "Browser V8"}
+            {language === "python" ? "Python 3.10 (Real)" : "Node.js 18"}
           </p>
         </div>
       </div>

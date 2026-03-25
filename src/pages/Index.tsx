@@ -1,9 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { usePyodide } from "@/hooks/use-pyodide";
-import { useJsRunner } from "@/hooks/use-js-runner";
+import { useCodeRunner } from "@/hooks/use-code-runner";
 import { AppHeader } from "@/components/AppHeader";
 import { CodeEditor } from "@/components/CodeEditor";
-import { ConsoleOutput } from "@/components/ConsoleOutput";
+import { XTerminal, type XTerminalHandle } from "@/components/XTerminal";
 import { StdinInput } from "@/components/StdinInput";
 import { AdBanner } from "@/components/AdBanner";
 import { AdFooter } from "@/components/AdFooter";
@@ -14,11 +13,14 @@ import { Terminal, X } from "lucide-react";
 
 const DEFAULT_PYTHON = `# Welcome to Python Compiler! 🐍
 # Write your Python code and click Run (or Ctrl+Enter)
+# Real Python execution — supports input(), loops, errors
 
-# Example with input() — add values in the stdin box below ⬇️
 name = input("Enter your name: ")
 age = input("Enter your age: ")
 print(f"Hello {name}! You are {age} years old. 🎉")
+
+for i in range(5):
+    print(f"  Count: {i}")
 `;
 
 const DEFAULT_JS = `// Welcome to JavaScript Compiler! ⚡
@@ -48,16 +50,12 @@ const Index = () => {
   const code = language === "python" ? pyCode : jsCode;
   const setCode = language === "python" ? setPyCode : setJsCode;
 
-  const py = usePyodide();
-  const js = useJsRunner();
+  const { run, status, executionTime } = useCodeRunner();
+  const termRef = useRef<XTerminalHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showConsole, setShowConsole] = useState(false);
-
-  const status = language === "python" ? py.status : js.status;
-  const entries = language === "python" ? py.entries : js.entries;
-  const clearConsole = language === "python" ? py.clearConsole : js.clearConsole;
-  const executionTime = language === "python" ? py.executionTime : null;
+  const [hasOutput, setHasOutput] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -66,30 +64,70 @@ const Index = () => {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(py.preload, 1500);
-    return () => clearTimeout(timer);
-  }, [py.preload]);
-
-  const handleRun = useCallback(() => {
+  const handleRun = useCallback(async () => {
     if (isMobile) setShowConsole(true);
-    if (language === "python") {
-      const lines = stdinText.split("\n").filter((l) => l.length > 0);
-      py.run(code, lines);
-    } else {
-      js.run(code);
+    setHasOutput(true);
+
+    const term = termRef.current;
+    if (term) {
+      term.clear();
+      term.writeln(`\x1b[38;2;100;200;180m$ ${language === "python" ? "python" : "node"} main.${language === "python" ? "py" : "js"}\x1b[0m`);
+      term.writeln("");
     }
-  }, [language, code, py, js, isMobile, stdinText]);
+
+    const stdin = language === "python" ? stdinText : "";
+    const result = await run(code, language, stdin);
+
+    if (term) {
+      // Write stdout
+      if (result.stdout) {
+        const lines = result.stdout.split("\n");
+        lines.forEach((line, i) => {
+          if (i < lines.length - 1 || line) {
+            term.writeln(line);
+          }
+        });
+      }
+
+      // Write stderr in red
+      if (result.stderr) {
+        const lines = result.stderr.split("\n");
+        lines.forEach((line, i) => {
+          if (i < lines.length - 1 || line) {
+            term.writeln(`\x1b[31m${line}\x1b[0m`);
+          }
+        });
+      }
+
+      // Execution summary
+      term.writeln("");
+      const elapsed = result.elapsed < 1000
+        ? `${result.elapsed.toFixed(0)}ms`
+        : `${(result.elapsed / 1000).toFixed(2)}s`;
+
+      if (result.exitCode === 0 && !result.stderr) {
+        term.writeln(`\x1b[32m✓ Process exited with code 0 (${elapsed})\x1b[0m`);
+      } else {
+        term.writeln(`\x1b[31m✗ Process exited with code ${result.exitCode} (${elapsed})\x1b[0m`);
+      }
+      term.writeln("");
+    }
+  }, [language, code, run, isMobile, stdinText]);
+
+  const handleClear = useCallback(() => {
+    termRef.current?.reset();
+    setHasOutput(false);
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
       if (mod && e.key === "Enter") { e.preventDefault(); handleRun(); }
-      if (mod && e.key === "k") { e.preventDefault(); clearConsole(); }
+      if (mod && e.key === "k") { e.preventDefault(); handleClear(); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleRun, clearConsole]);
+  }, [handleRun, handleClear]);
 
   const handleDownload = useCallback(() => {
     const ext = language === "python" ? "py" : "js";
@@ -127,11 +165,7 @@ const Index = () => {
 
   const consolePane = (
     <div className="h-full p-1 sm:p-2">
-      <ConsoleOutput
-        entries={entries}
-        onClear={clearConsole}
-        executionTime={executionTime}
-      />
+      <XTerminal ref={termRef} />
     </div>
   );
 
@@ -156,8 +190,8 @@ const Index = () => {
         <AdBanner />
         <AppHeader
           onRun={handleRun}
-          onStop={language === "python" ? py.stop : () => {}}
-          onClear={clearConsole}
+          onStop={() => {}}
+          onClear={handleClear}
           onDownload={handleDownload}
           onUpload={handleUpload}
           status={status}
@@ -182,7 +216,7 @@ const Index = () => {
                 <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/30">
                   <div className="flex items-center gap-2">
                     <Terminal className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-semibold text-foreground">Console Output</span>
+                    <span className="text-sm font-semibold text-foreground">Terminal</span>
                   </div>
                   <button
                     onClick={() => setShowConsole(false)}
@@ -195,7 +229,7 @@ const Index = () => {
               </div>
             )}
 
-            {!showConsole && entries.length > 0 && (
+            {!showConsole && hasOutput && (
               <button
                 onClick={() => setShowConsole(true)}
                 className="fixed bottom-6 left-6 z-30 flex items-center gap-2 px-3 py-2 rounded-xl
@@ -203,7 +237,7 @@ const Index = () => {
                   shadow-lg hover:bg-secondary transition-all md:hidden"
               >
                 <Terminal className="w-3.5 h-3.5 text-primary" />
-                <span>Console ({entries.length})</span>
+                <span>Terminal</span>
               </button>
             )}
           </div>
@@ -214,13 +248,16 @@ const Index = () => {
         <footer className="flex items-center justify-between px-4 py-1.5 border-t border-border text-xs text-muted-foreground bg-secondary/20">
           <span className="hidden sm:inline">
             {language === "python"
-              ? `${py.pyodideVersion ? `Pyodide ${py.pyodideVersion}` : "Python 3.x"} • Ctrl+Enter to run`
-              : "JavaScript (V8) • Ctrl+Enter to run"}
+              ? "Python 3.10 (Real Execution) • Ctrl+Enter to run"
+              : "JavaScript (Node 18) • Ctrl+Enter to run"}
           </span>
           <span className="sm:hidden text-[10px]">
-            {language === "python" ? "Python 3.x" : "JavaScript"}
+            {language === "python" ? "Python 3.10" : "JS (Node 18)"}
           </span>
-          <span className="gradient-text font-semibold text-[10px] sm:text-xs">Developed by Santosh pandey ✨</span>
+          <span className="gradient-text font-semibold text-[10px] sm:text-xs">
+            {executionTime !== null && `${executionTime < 1000 ? `${executionTime.toFixed(0)}ms` : `${(executionTime / 1000).toFixed(2)}s`} • `}
+            Developed by Santosh pandey ✨
+          </span>
         </footer>
         <AdFooter />
       </div>
