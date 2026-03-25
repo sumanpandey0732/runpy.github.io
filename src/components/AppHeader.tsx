@@ -1,5 +1,5 @@
 import { Play, Square, Trash2, Download, Upload, Code2 } from "lucide-react";
-import type { RunStatus } from "@/hooks/use-pyodide";
+import type { RunStatus } from "@/hooks/use-code-runner";
 
 interface AppHeaderProps {
   onRun: () => void;
